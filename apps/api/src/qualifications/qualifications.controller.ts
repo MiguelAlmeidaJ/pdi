@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { SystemRole } from '@prisma/client';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Roles } from '../auth/roles.decorator';
@@ -14,7 +14,7 @@ export class QualificationsController {
 
   @Roles(SystemRole.ADMIN, SystemRole.MANAGER)
   @Get()
-  findAll() { return this.service.findAll(); }
+  findAll(@Query('teamId') teamId?: string) { return this.service.findAll(teamId); }
 
   @Roles(SystemRole.ADMIN)
   @Post()
