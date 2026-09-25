@@ -34,17 +34,24 @@ export class RolesService {
     });
   }
   async setStepRequirements(stepId: string, dto: SetStepRequirementsDto) {
-    const step = await this.prisma.roleStep.findUnique({ where: { id: stepId } });
+    const step = await this.prisma.roleStep.findUnique({
+      where: { id: stepId },
+      include: { role: { select: { teamId: true } } },
+    });
     if (!step) throw new NotFoundException('Step não encontrado');
 
     const ids = dto.requirements.map((item) => item.qualificationId);
     if (new Set(ids).size !== ids.length) throw new BadRequestException('Qualificações não podem se repetir');
 
     const qualifications = await this.prisma.qualification.findMany({
-      where: { id: { in: ids }, active: true },
+      where: {
+        id: { in: ids },
+        active: true,
+        teamId: step.role.teamId,
+      },
       select: { id: true },
     });
-    if (qualifications.length !== ids.length) throw new BadRequestException('Uma ou mais qualificações não existem ou estão inativas');
+    if (qualifications.length !== ids.length) throw new BadRequestException('Uma ou mais qualificações não existem, estão inativas ou pertencem a outro time');
 
     await this.prisma.$transaction([
       this.prisma.roleStepQualification.deleteMany({ where: { roleStepId: stepId } }),
