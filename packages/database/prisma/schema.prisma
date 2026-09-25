@@ -50,6 +50,7 @@ model Team {
   updatedAt DateTime @updatedAt
   roles Role[]
   users User[]
+  qualifications Qualification[]
 }
 
 model User {
@@ -123,15 +124,18 @@ model RoleStep {
 model Qualification {
   id String @id @default(cuid())
   name String
+  teamId String?
   type QualificationType
   description String?
   referenceUrl String?
   active Boolean @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  team Team? @relation(fields: [teamId], references: [id])
   roleStepRequirements RoleStepQualification[]
   userQualifications UserQualification[]
-  @@unique([name, type])
+  @@unique([teamId, name, type])
+  @@index([teamId])
 }
 
 model RoleStepQualification {
