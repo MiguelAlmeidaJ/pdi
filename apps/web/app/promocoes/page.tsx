@@ -1,0 +1,2 @@
+import { AppLayout } from '../../components/app-layout';
+export default function Promocoes(){return <AppLayout title="Promoções" description="Analise colaboradores prontos para avançar na carreira."><section className="promotion-page"><div className="empty-illustration">↗</div><h2>Fluxo de promoções</h2><p>Esta área receberá solicitações elegíveis, aprovação do gestor e histórico de decisões.</p><div className="flow-steps"><span>Elegibilidade</span><i>→</i><span>Solicitação</span><i>→</i><span>Aprovação</span><i>→</i><span>Novo step</span></div></section></AppLayout>}
