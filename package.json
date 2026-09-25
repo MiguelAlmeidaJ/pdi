@@ -1,0 +1,20 @@
+{
+  "name": "pdi",
+  "private": true,
+  "packageManager": "pnpm@10.17.1",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "test": "turbo test",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md,yml,yaml,prisma}\"",
+    "db:generate": "pnpm --filter @pdi/database generate",
+    "db:migrate": "pnpm --filter @pdi/database migrate:dev",
+    "db:studio": "pnpm --filter @pdi/database studio"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "turbo": "^2.5.6",
+    "typescript": "^5.9.2"
+  }
+}
