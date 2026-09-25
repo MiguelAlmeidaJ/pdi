@@ -1,30 +1,18 @@
-const cards = [
-  ['Times', 'Estrutura dos times e seus gestores'],
-  ['Cargos', 'Cargos, steps e faixas salariais'],
-  ['Qualificações', 'Cursos, conhecimentos e experiência'],
-  ['Promoções', 'Acompanhamento e aprovação de progressões'],
-];
+import { Sidebar } from '../components/sidebar';
+
+const stats = [['Colaboradores','24','+2 este mês'],['Cargos ativos','12','4 times'],['Em desenvolvimento','18','75% do time'],['Prontos para promoção','5','Aguardando análise']];
+const people = [['Ana Martins','Desenvolvedora · Step 1',80,'AM'],['Carlos Souza','Suporte TI · Base',60,'CS'],['Marina Lima','Product Designer · Step 2',100,'ML']];
 
 export default function Home() {
-  return (
-    <main className="mx-auto min-h-screen max-w-6xl px-6 py-16">
-      <span className="rounded-full bg-slate-900 px-3 py-1 text-sm font-medium text-white">
-        PDI · Bootstrap
-      </span>
-      <h1 className="mt-6 max-w-3xl text-5xl font-bold tracking-tight">
-        Desenvolvimento de carreira de forma clara e mensurável.
-      </h1>
-      <p className="mt-5 max-w-2xl text-lg text-slate-600">
-        Estrutura inicial do sistema para organizar times, cargos, steps, qualificações e promoções.
-      </p>
-      <section className="mt-12 grid gap-4 md:grid-cols-2">
-        {cards.map(([title, description]) => (
-          <article key={title} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-semibold">{title}</h2>
-            <p className="mt-2 text-slate-600">{description}</p>
-          </article>
-        ))}
-      </section>
-    </main>
-  );
+  return <div className="app-shell"><Sidebar /><main className="content">
+    <header className="topbar"><div><p className="eyebrow">VISÃO GERAL</p><h1>Bom dia, Administrador</h1><p>Acompanhe o desenvolvimento dos seus times.</p></div><button className="icon-button">◎</button></header>
+    <section className="stats-grid">{stats.map(([label,value,note])=><article className="stat-card" key={label}><div className="stat-icon">↗</div><div><p>{label}</p><strong>{value}</strong><span>{note}</span></div></article>)}</section>
+    <section className="dashboard-grid">
+      <article className="panel progress-panel"><div className="panel-head"><div><p className="eyebrow">DESENVOLVIMENTO</p><h2>Progresso dos colaboradores</h2></div><button className="text-button">Ver todos →</button></div>
+        <div className="people-list">{people.map(([name,role,progress,initials])=><div className="person" key={name}><div className="avatar soft">{initials}</div><div className="person-info"><div><strong>{name}</strong><span>{role}</span></div><div className="progress-row"><div className="progress-track"><div className="progress-fill" style={{width: progress+'%'}} /></div><b>{progress}%</b></div></div><button className="round-button">›</button></div>)}</div>
+      </article>
+      <article className="panel career-panel"><p className="eyebrow">CARREIRA</p><h2>Próximas promoções</h2><div className="promotion-highlight"><div className="promotion-ring">5</div><div><strong>colaboradores elegíveis</strong><span>Com 100% dos requisitos concluídos</span></div></div><button className="primary-button">Revisar promoções →</button></article>
+    </section>
+    <section className="panel activity-panel"><div className="panel-head"><div><p className="eyebrow">ATIVIDADE RECENTE</p><h2>Últimas atualizações</h2></div></div><div className="activity"><div className="activity-icon">✓</div><div><strong>Marina Lima concluiu todos os requisitos</strong><span>Product Designer · Step 2 → Step 3</span></div><time>há 2h</time></div><div className="activity"><div className="activity-icon">★</div><div><strong>Carlos Souza concluiu uma qualificação</strong><span>Fundamentos de Redes · Suporte TI</span></div><time>ontem</time></div></section>
+  </main></div>;
 }
