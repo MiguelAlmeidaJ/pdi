@@ -2,6 +2,7 @@ import { BadRequestException, ConflictException, Injectable, NotFoundException }
 import { StepCode } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service';
 import { CreateRoleDto } from './dto/create-role.dto';
+import { SetStepRequirementsDto } from './dto/set-step-requirements.dto';
 
 @Injectable()
 export class RolesService {
@@ -31,5 +32,54 @@ export class RolesService {
       },
       include: { steps: { orderBy: { order: 'asc' } } },
     });
+  }
+  async setStepRequirements(stepId: string, dto: SetStepRequirementsDto) {
+    const step = await this.prisma.roleStep.findUnique({ where: { id: stepId } });
+    if (!step) throw new NotFoundException('Step não encontrado');
+
+    const ids = dto.requirements.map((item) => item.qualificationId);
+    if (new Set(ids).size !== ids.length) throw new BadRequestException('Qualificações não podem se repetir');
+
+    const qualifications = await this.prisma.qualification.findMany({
+      where: { id: { in: ids }, active: true },
+      select: { id: true },
+    });
+    if (qualifications.length !== ids.length) throw new BadRequestException('Uma ou mais qualificações não existem ou estão inativas');
+
+    await this.prisma.$transaction([
+      this.prisma.roleStepQualification.deleteMany({ where: { roleStepId: stepId } }),
+      this.prisma.roleStepQualification.createMany({
+        data: dto.requirements.map((item) => ({
+          roleStepId: stepId,
+          qualificationId: item.qualificationId,
+          required: item.required ?? true,
+          notes: item.notes?.trim(),
+        })),
+      }),
+    ]);
+
+    return this.prisma.roleStep.findUnique({
+      where: { id: stepId },
+      include: {
+        requirements: {
+          include: { qualification: true },
+          orderBy: { qualification: { name: 'asc' } },
+        },
+      },
+    });
+  }
+
+  async getStepRequirements(stepId: string) {
+    const step = await this.prisma.roleStep.findUnique({
+      where: { id: stepId },
+      include: {
+        requirements: {
+          include: { qualification: true },
+          orderBy: { qualification: { name: 'asc' } },
+        },
+      },
+    });
+    if (!step) throw new NotFoundException('Step não encontrado');
+    return step;
   }
 }
