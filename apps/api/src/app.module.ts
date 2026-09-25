@@ -4,6 +4,8 @@ import { AppController } from './app.controller';
 import { AuthModule } from './auth/auth.module';
 import { DatabaseModule } from './database/database.module';
 import { UsersModule } from './users/users.module';
+import { TeamsModule } from './teams/teams.module';
+import { RolesModule } from './roles/roles.module';
 
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import { UsersModule } from './users/users.module';
     DatabaseModule,
     AuthModule,
     UsersModule,
+    TeamsModule,
+    RolesModule,
   ],
   controllers: [AppController],
 })
