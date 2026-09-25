@@ -9,8 +9,38 @@ export class UsersService {
 
   findAll() {
     return this.prisma.user.findMany({
-      select: { id: true, name: true, email: true, systemRole: true, active: true, hiredAt: true, teamId: true, roleId: true, currentRoleStepId: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        systemRole: true,
+        active: true,
+        hiredAt: true,
+        professionalSince: true,
+        team: { select: { id: true, name: true } },
+        role: { select: { id: true, name: true } },
+        currentRoleStep: { select: { id: true, code: true, label: true, salary: true, order: true } },
+      },
       orderBy: { name: 'asc' },
+    });
+  }
+
+  async findOne(id: string) {
+    return this.prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        systemRole: true,
+        active: true,
+        hiredAt: true,
+        professionalSince: true,
+        team: { select: { id: true, name: true } },
+        role: { select: { id: true, name: true, description: true } },
+        currentRoleStep: { select: { id: true, code: true, label: true, salary: true, order: true } },
+        manager: { select: { id: true, name: true, email: true } },
+      },
     });
   }
 
