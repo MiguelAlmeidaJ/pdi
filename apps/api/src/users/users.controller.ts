@@ -27,6 +27,10 @@ export class UsersController {
   create(@Body() dto: CreateUserDto) { return this.users.create(dto); }
 
   @Roles(SystemRole.ADMIN, SystemRole.MANAGER)
+  @Get(':id')
+  findOne(@Param('id') id: string) { return this.users.findOne(id); }
+
+  @Roles(SystemRole.ADMIN, SystemRole.MANAGER)
   @Get(':id/development')
   getDevelopment(@Param('id') id: string) { return this.development.getDevelopment(id); }
 
