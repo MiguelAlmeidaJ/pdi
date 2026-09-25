@@ -10,7 +10,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,json,md,yml,yaml,prisma}\"",
     "db:generate": "pnpm --filter @pdi/database generate",
     "db:migrate": "pnpm --filter @pdi/database migrate:dev",
-    "db:studio": "pnpm --filter @pdi/database studio"
+    "db:studio": "pnpm --filter @pdi/database studio",
+    "db:seed": "pnpm --filter @pdi/database seed"
   },
   "devDependencies": {
     "prettier": "^3.6.2",
