@@ -6,7 +6,7 @@ import { AppLayout } from '../../../components/app-layout';
 import { api } from '../../../lib/api';
 
 type Profile={id:string;name:string;email:string;active:boolean;hiredAt:string;professionalSince?:string|null;currentRoleStepStartedAt?:string|null;systemRole:string;team?:{name:string}|null;role?:{id:string;name:string;description?:string|null;steps:{id:string;label:string;code:string;salary:string;order:number}[]}|null;currentRoleStep?:{id:string;label:string;code:string;salary:string;order:number}|null;manager?:{name:string;email:string}|null;careerHistory:{id:string;startedAt:string;endedAt?:string|null;reason?:string|null;salary:string;role:{id:string;name:string};roleStep:{id:string;code:string;label:string;order:number}}[]};
-type Requirement={key:string;name:string;type:string;met:boolean;status?:string;requiredMonths?:number;currentMonths?:number;description?:string|null;notes?:string|null};
+type Requirement={key:string;source?:'AUTO'|'QUALIFICATION';name:string;type:string;met:boolean;status?:string;requiredMonths?:number;currentMonths?:number;description?:string|null;notes?:string|null;evidenceUrl?:string|null;completedAt?:string|null};
 type Development={current:{role:{name:string};step:{label:string;code:string};salary:string;startedAt?:string|null;monthsInCurrentStep?:number};next:null|{label:string;code:string;salary:string};progress:{required:number;completed:number;percentage:number};requirements:Requirement[];eligibleForPromotion:boolean;careerComplete:boolean};
 
 export default function Colaborador(){
@@ -19,6 +19,12 @@ export default function Colaborador(){
   const [moveReason,setMoveReason]=useState('');
   const [effectiveAt,setEffectiveAt]=useState('');
   const [moving,setMoving]=useState(false);
+  const [evaluationOpen,setEvaluationOpen]=useState(false);
+  const [evaluationRequirement,setEvaluationRequirement]=useState<Requirement|null>(null);
+  const [evaluationStatus,setEvaluationStatus]=useState('PENDING');
+  const [evaluationNotes,setEvaluationNotes]=useState('');
+  const [evaluationEvidence,setEvaluationEvidence]=useState('');
+  const [savingEvaluation,setSavingEvaluation]=useState(false);
   async function load(){
     try{
       const [p,d]=await Promise.all([api<Profile>('/users/'+id),api<Development>('/users/'+id+'/development')]);
@@ -26,6 +32,32 @@ export default function Colaborador(){
     }catch(e){setError(e instanceof Error?e.message:'Erro ao carregar PDI')}
   }
   useEffect(()=>{load()},[id]);
+
+  function openEvaluation(requirement:Requirement){
+    setEvaluationRequirement(requirement);
+    setEvaluationStatus(requirement.status||'PENDING');
+    setEvaluationNotes(requirement.notes||'');
+    setEvaluationEvidence(requirement.evidenceUrl||'');
+    setEvaluationOpen(true);
+  }
+
+  async function saveEvaluation(){
+    if(!evaluationRequirement)return;
+    setSavingEvaluation(true);setError('');
+    try{
+      await api('/users/'+id+'/qualifications/'+evaluationRequirement.key,{
+        method:'PUT',
+        body:JSON.stringify({
+          status:evaluationStatus,
+          evidenceUrl:evaluationEvidence||undefined,
+          notes:evaluationNotes||undefined
+        })
+      });
+      setEvaluationOpen(false);setEvaluationRequirement(null);
+      await load();
+    }catch(e){setError(e instanceof Error?e.message:'Erro ao salvar avaliação')}
+    finally{setSavingEvaluation(false)}
+  }
 
   async function moveCareerStep(){
     if(!targetStepId||!moveReason.trim())return;
@@ -63,7 +95,7 @@ export default function Colaborador(){
     <section className="pdi-grid">
       <article className="panel requirements-panel">
         <div className="panel-head"><div><p className="eyebrow">REQUISITOS</p><h2>Plano para o próximo step</h2></div><span className={dev.eligibleForPromotion?'ready-badge':'pending-badge'}>{dev.eligibleForPromotion?'Pronto para promoção':'Em desenvolvimento'}</span></div>
-        <div className="requirement-list">{dev.requirements.map(r=><div className={'requirement-item '+(r.met?'done':'')} key={r.key}><div className="requirement-check">{r.met?'✓':'○'}</div><div><strong>{r.name}</strong><span>{r.requiredMonths!=null?String(r.currentMonths||0)+' de '+String(r.requiredMonths)+' meses':r.description||r.notes||r.type}</span></div><em>{r.met?'Concluído':r.status==='IN_PROGRESS'?'Em andamento':'Pendente'}</em></div>)}</div>
+        <div className="requirement-list">{dev.requirements.map(r=><div className={'requirement-item '+(r.met?'done':'')} key={r.key}><div className="requirement-check">{r.met?'✓':'○'}</div><div><strong>{r.name}</strong><span>{r.requiredMonths!=null?String(r.currentMonths||0)+' de '+String(r.requiredMonths)+' meses':r.description||r.notes||r.type}</span>{r.evidenceUrl&&<a className="requirement-evidence" href={r.evidenceUrl} target="_blank" rel="noreferrer">Ver evidência ↗</a>}</div><div className="requirement-actions"><em>{r.met?'Concluído':r.status==='IN_PROGRESS'?'Em andamento':r.status==='REJECTED'?'Rejeitada':'Pendente'}</em>{r.source==='QUALIFICATION'&&<button className="evaluate-button" onClick={()=>openEvaluation(r)}>Avaliar</button>}</div></div>)}</div>
         {!dev.requirements.length&&<div className="empty-state compact"><b>Nenhum requisito pendente</b><span>{dev.careerComplete?'Este colaborador chegou ao último step.':'O próximo step não possui requisitos cadastrados.'}</span></div>}
       </article>
 
@@ -81,6 +113,24 @@ export default function Colaborador(){
         <div className="career-history-salary">R$ {Number(item.salary).toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>
       </div>)}</div>:<div className="empty-state compact"><span>Nenhuma movimentação registrada.</span></div>}
     </section>
+
+    {evaluationOpen&&evaluationRequirement&&<div className="modal-backdrop"><div className="modal modal-lg">
+      <div className="modal-head"><div><p className="eyebrow">AVALIAÇÃO DE QUALIFICAÇÃO</p><h2>{evaluationRequirement.name}</h2><p>Atualize o andamento, registre evidências e deixe uma observação para o colaborador.</p></div><button className="modal-close" onClick={()=>setEvaluationOpen(false)}>×</button></div>
+      <div className="evaluation-status-grid">
+        {[
+          ['PENDING','Pendente','Ainda não iniciado'],
+          ['IN_PROGRESS','Em andamento','Em desenvolvimento'],
+          ['COMPLETED','Concluída','Requisito atendido'],
+          ['REJECTED','Rejeitada','Necessita revisão']
+        ].map(([value,label,caption])=><button key={value} className={evaluationStatus===value?'evaluation-status active':'evaluation-status'} onClick={()=>setEvaluationStatus(value)}><b>{label}</b><span>{caption}</span></button>)}
+      </div>
+      <div className="form-grid two evaluation-form">
+        <label className="span-2">Evidência / certificado<input type="url" value={evaluationEvidence} onChange={e=>setEvaluationEvidence(e.target.value)} placeholder="https://..."/></label>
+        <label className="span-2">Observação<textarea value={evaluationNotes} onChange={e=>setEvaluationNotes(e.target.value)} placeholder="Ex.: Demonstrou domínio durante atendimento acompanhado e concluiu o treinamento interno."/></label>
+      </div>
+      {evaluationStatus==='REJECTED'&&<div className="override-note"><strong>Observação obrigatória</strong><span>Explique o motivo da rejeição para que o colaborador saiba o que precisa revisar.</span></div>}
+      <div className="modal-actions"><button className="secondary-button" onClick={()=>setEvaluationOpen(false)}>Cancelar</button><button className="primary-action" disabled={savingEvaluation||(evaluationStatus==='REJECTED'&&evaluationNotes.trim().length===0)} onClick={saveEvaluation}>{savingEvaluation?'Salvando...':'Salvar avaliação'}</button></div>
+    </div></div>}
 
     {moveOpen&&profile.role&&<div className="modal-backdrop"><div className="modal modal-lg">
       <div className="modal-head"><div><p className="eyebrow">MOVIMENTAÇÃO DE CARREIRA</p><h2>Alterar etapa de {profile.name}</h2><p>O gestor pode avançar diretamente para outro nível. A justificativa ficará registrada no histórico.</p></div><button className="modal-close" onClick={()=>setMoveOpen(false)}>×</button></div>
