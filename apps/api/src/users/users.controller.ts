@@ -5,6 +5,7 @@ import { Roles } from '../auth/roles.decorator';
 import { CreateUserDto } from './dto/create-user.dto';
 import { SetUserQualificationDto } from './dto/set-user-qualification.dto';
 import { ChangeCareerStepDto } from './dto/change-career-step.dto';
+import { SubmitQualificationDto } from './dto/submit-qualification.dto';
 import { UsersService } from './users.service';
 import { DevelopmentService } from './development.service';
 import { UserQualificationsService } from './user-qualifications.service';
@@ -55,6 +56,16 @@ export class UsersController {
   @Get('me/qualifications')
   getMyQualifications(@Request() request: AuthenticatedRequest) {
     return this.userQualifications.findAll(request.user.sub);
+  }
+
+  @Roles(SystemRole.USER)
+  @Put('me/qualifications/:qualificationId/submission')
+  submitMyQualification(
+    @Param('qualificationId') qualificationId: string,
+    @Body() dto: SubmitQualificationDto,
+    @Request() request: AuthenticatedRequest,
+  ) {
+    return this.userQualifications.submitByUser(request.user.sub, qualificationId, dto);
   }
 
   @Roles(SystemRole.ADMIN, SystemRole.MANAGER)
