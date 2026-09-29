@@ -1861,3 +1861,132 @@ body{
   .edit-role-step{grid-template-columns:1fr}
   .edit-role-step-fields{grid-template-columns:1fr}
 }
+
+
+/* ===== Sidebar account footer refinement ===== */
+@media(min-width:651px){
+  .sidebar-bottom{
+    border-top:1px solid rgba(255,255,255,.065);
+    padding-top:12px;
+  }
+
+  .profile-button{
+    background:transparent;
+    border:1px solid transparent;
+    border-radius:11px;
+    transition:background .15s ease,border-color .15s ease;
+  }
+
+  .sidebar:hover .profile-button,
+  .sidebar:focus-within .profile-button{
+    width:100%;
+    min-width:0;
+    padding:7px 8px;
+    background:rgba(255,255,255,.035);
+    border-color:rgba(255,255,255,.05);
+  }
+
+  .sidebar:hover .profile-button:hover,
+  .sidebar:focus-within .profile-button:hover{
+    background:rgba(255,255,255,.055);
+    border-color:rgba(255,255,255,.075);
+  }
+
+  .sidebar:not(:hover):not(:focus-within) .profile-button{
+    background:transparent;
+    border-color:transparent;
+  }
+
+  .profile-menu{
+    left:0;
+    right:auto;
+    width:232px;
+    bottom:61px;
+    padding:7px;
+    border:1px solid rgba(255,255,255,.075);
+    border-radius:12px;
+    background:#101a2a;
+    box-shadow:0 20px 42px rgba(0,0,0,.28);
+  }
+
+  .profile-menu-head{
+    display:grid;
+    grid-template-columns:34px 1fr;
+    gap:9px;
+    align-items:center;
+    padding:7px 8px 8px;
+  }
+
+  .profile-menu-avatar{
+    width:34px;height:34px;
+    display:grid;place-items:center;
+    border-radius:10px;
+    background:linear-gradient(145deg,#20336d,#14214a);
+    color:#d7dcff;
+    font-size:10px;
+    font-weight:800;
+    box-shadow:inset 0 0 0 1px rgba(117,132,255,.16);
+  }
+
+  .profile-menu-head strong,
+  .profile-menu-head span{
+    display:block;
+  }
+
+  .profile-menu-head strong{
+    max-width:155px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    color:#eef2f7;
+    font-size:10px;
+  }
+
+  .profile-menu-head span{
+    margin-top:2px;
+    color:#718096;
+    font-size:8px;
+  }
+
+  .profile-menu-divider{
+    height:1px;
+    margin:5px 4px;
+    background:rgba(255,255,255,.06);
+  }
+
+  .profile-menu a,
+  .profile-menu button{
+    min-height:34px;
+    padding:8px 9px;
+    border-radius:8px;
+    font-size:9px;
+  }
+
+  .profile-menu a svg,
+  .profile-menu button svg{
+    width:13px;height:13px;
+  }
+
+  .profile-menu .profile-menu-logout{
+    color:#fda29b;
+  }
+
+  .profile-menu .profile-menu-logout:hover{
+    background:rgba(240,68,56,.09);
+    color:#ffb4ae;
+  }
+
+  .profile-copy strong{
+    font-size:10px;
+  }
+
+  .profile-copy span{
+    font-size:8px;
+    color:#768398;
+  }
+
+  .profile-chevron{
+    width:13px!important;
+    height:13px!important;
+  }
+}
