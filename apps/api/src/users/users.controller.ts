@@ -35,10 +35,10 @@ export class UsersController {
     return this.users.findAll(request.user);
   }
 
-  @Roles(SystemRole.ADMIN)
+  @Roles(SystemRole.ADMIN, SystemRole.MANAGER)
   @Post()
-  create(@Body() dto: CreateUserDto) {
-    return this.users.create(dto);
+  create(@Body() dto: CreateUserDto, @Request() request: AuthenticatedRequest) {
+    return this.users.create(dto, request.user);
   }
 
   @Roles(SystemRole.USER, SystemRole.MANAGER, SystemRole.ADMIN)
