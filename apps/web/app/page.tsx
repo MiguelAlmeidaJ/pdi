@@ -59,11 +59,17 @@ export default function Home(){
   const activeUsers=users.filter(user=>user.active).length;
   const withCareer=users.filter(user=>user.role&&user.currentRoleStep).length;
   const unread=notifications.filter(item=>!item.readAt).length;
+  const visibleTeamCount=sessionUser?.systemRole==='MANAGER'
+    ? new Set(users.map(user=>user.team?.id).filter(Boolean)).size
+    : teams.length;
+  const visibleRoleCount=sessionUser?.systemRole==='MANAGER'
+    ? new Set(users.map(user=>user.role?.id).filter(Boolean)).size
+    : roles.length;
 
   const stats=[
     {label:'Colaboradores',value:activeUsers,note:users.length+' cadastrados',icon:FiUsers,tone:'blue'},
-    {label:'Times',value:teams.length,note:'estrutura ativa',icon:FiGrid,tone:'slate'},
-    {label:'Cargos',value:roles.length,note:withCareer+' pessoas posicionadas',icon:FiBriefcase,tone:'indigo'},
+    {label:'Times',value:visibleTeamCount,note:'estrutura ativa',icon:FiGrid,tone:'slate'},
+    {label:'Cargos',value:visibleRoleCount,note:withCareer+' pessoas posicionadas',icon:FiBriefcase,tone:'indigo'},
     {label:'Avaliações pendentes',value:reviews.length,note:reviews.length?'requerem atenção':'fila em dia',icon:FiCheckCircle,tone:reviews.length?'amber':'green'},
   ];
 
@@ -146,8 +152,8 @@ export default function Home(){
           <div><p className="eyebrow">ESTRUTURA</p><h2>Distribuição do PDI</h2><p className="panel-description">Visão rápida da base estrutural do sistema.</p></div>
         </div>
         <div className="structure-metrics">
-          <div><span>Times</span><strong>{teams.length}</strong></div>
-          <div><span>Cargos</span><strong>{roles.length}</strong></div>
+          <div><span>Times</span><strong>{visibleTeamCount}</strong></div>
+          <div><span>Cargos</span><strong>{visibleRoleCount}</strong></div>
           <div><span>Com carreira definida</span><strong>{withCareer}</strong></div>
           <div><span>Sem posição definida</span><strong>{Math.max(0,users.length-withCareer)}</strong></div>
         </div>
