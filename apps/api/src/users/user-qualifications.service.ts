@@ -7,7 +7,7 @@ import { SetUserQualificationDto } from './dto/set-user-qualification.dto';
 export class UserQualificationsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async set(userId: string, qualificationId: string, dto: SetUserQualificationDto) {
+  async set(userId: string, qualificationId: string, dto: SetUserQualificationDto, evaluatorId: string) {
     const [user, qualification] = await Promise.all([
       this.prisma.user.findUnique({ where: { id: userId } }),
       this.prisma.qualification.findUnique({ where: { id: qualificationId } }),
@@ -18,30 +18,51 @@ export class UserQualificationsService {
       throw new BadRequestException('A qualificação deve pertencer ao mesmo time do colaborador');
     }
 
-    if (dto.status === QualificationStatus.COMPLETED && !dto.completedAt) {
-      throw new BadRequestException('completedAt é obrigatório quando a qualificação está concluída');
+    if (dto.status === QualificationStatus.REJECTED && !dto.notes?.trim()) {
+      throw new BadRequestException('Informe uma observação ao rejeitar uma qualificação');
     }
+
+    const completedAt =
+      dto.status === QualificationStatus.COMPLETED
+        ? dto.completedAt
+          ? new Date(dto.completedAt)
+          : new Date()
+        : null;
 
     return this.prisma.userQualification.upsert({
       where: { userId_qualificationId: { userId, qualificationId } },
       create: {
-        userId, qualificationId, status: dto.status,
-        completedAt: dto.completedAt ? new Date(dto.completedAt) : undefined,
-        evidenceUrl: dto.evidenceUrl, notes: dto.notes?.trim(),
+        userId,
+        qualificationId,
+        status: dto.status,
+        completedAt,
+        evidenceUrl: dto.evidenceUrl,
+        notes: dto.notes?.trim(),
+        evaluatorId,
+        evaluatedAt: new Date(),
       },
       update: {
         status: dto.status,
-        completedAt: dto.completedAt ? new Date(dto.completedAt) : null,
-        evidenceUrl: dto.evidenceUrl, notes: dto.notes?.trim(),
+        completedAt,
+        evidenceUrl: dto.evidenceUrl,
+        notes: dto.notes?.trim(),
+        evaluatorId,
+        evaluatedAt: new Date(),
       },
-      include: { qualification: true },
+      include: {
+        qualification: true,
+        evaluator: { select: { id: true, name: true, email: true } },
+      },
     });
   }
 
   findAll(userId: string) {
     return this.prisma.userQualification.findMany({
       where: { userId },
-      include: { qualification: true },
+      include: {
+        qualification: true,
+        evaluator: { select: { id: true, name: true, email: true } },
+      },
       orderBy: { qualification: { name: 'asc' } },
     });
   }
