@@ -114,6 +114,8 @@ export class DevelopmentService {
         notes: requirement.notes,
         status: userQualification?.status ?? QualificationStatus.PENDING,
         evidenceUrl: userQualification?.evidenceUrl ?? null,
+        submissionNotes: userQualification?.submissionNotes ?? null,
+        submittedAt: userQualification?.submittedAt ?? null,
         completedAt: userQualification?.completedAt ?? null,
         evaluatedAt: userQualification?.evaluatedAt ?? null,
         evaluator: userQualification?.evaluator ?? null,
