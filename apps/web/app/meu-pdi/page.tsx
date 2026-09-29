@@ -6,6 +6,7 @@ import { api } from '../../lib/api';
 type Profile={id:string;name:string;email:string;active:boolean;hiredAt:string;professionalSince?:string|null;currentRoleStepStartedAt?:string|null;systemRole:string;team?:{name:string}|null;role?:{id:string;name:string;description?:string|null;steps:{id:string;label:string;code:string;salary:string;order:number}[]}|null;currentRoleStep?:{id:string;label:string;code:string;salary:string;order:number}|null;manager?:{name:string;email:string}|null;careerHistory:{id:string;startedAt:string;endedAt?:string|null;reason?:string|null;salary:string;role:{id:string;name:string};roleStep:{id:string;code:string;label:string;order:number}}[]};
 type Requirement={key:string;source?:'AUTO'|'QUALIFICATION';name:string;type:string;met:boolean;status?:string;requiredMonths?:number;currentMonths?:number;description?:string|null;notes?:string|null;evidenceUrl?:string|null;submissionNotes?:string|null;submittedAt?:string|null;evaluatedAt?:string|null;evaluator?:{id:string;name:string}|null};
 type Development={current:{role:{name:string};step:{label:string;code:string};salary:string;startedAt?:string|null;monthsInCurrentStep?:number};next:null|{label:string;code:string;salary:string};progress:{required:number;completed:number;percentage:number};requirements:Requirement[];eligibleForPromotion:boolean;careerComplete:boolean};
+type Notification={id:string;type:string;title:string;message:string;href?:string|null;readAt?:string|null;createdAt:string};
 
 export default function MeuPdi(){
   const [profile,setProfile]=useState<Profile|null>(null);
@@ -16,11 +17,16 @@ export default function MeuPdi(){
   const [submissionEvidence,setSubmissionEvidence]=useState('');
   const [submissionNotes,setSubmissionNotes]=useState('');
   const [submitting,setSubmitting]=useState(false);
+  const [notifications,setNotifications]=useState<Notification[]>([]);
 
   async function load(){
     try{
-      const [p,d]=await Promise.all([api<Profile>('/users/me'),api<Development>('/users/me/development')]);
-      setProfile(p);setDev(d);setError('');
+      const [p,d,n]=await Promise.all([
+        api<Profile>('/users/me'),
+        api<Development>('/users/me/development'),
+        api<Notification[]>('/notifications?unreadOnly=true')
+      ]);
+      setProfile(p);setDev(d);setNotifications(n);setError('');
     }catch(e){setError(e instanceof Error?e.message:'Erro ao carregar seu PDI')}
   }
   useEffect(()=>{load()},[]);
@@ -51,17 +57,14 @@ export default function MeuPdi(){
 
   const initials=profile.name.split(' ').slice(0,2).map(p=>p[0]).join('').toUpperCase();
   const missing=Math.max(0,dev.progress.required-dev.progress.completed);
-  const recentEvaluations=dev.requirements
-    .filter(r=>r.source==='QUALIFICATION'&&r.evaluatedAt&&(r.status==='COMPLETED'||r.status==='REJECTED'||r.status==='IN_PROGRESS'))
-    .sort((a,b)=>new Date(b.evaluatedAt||0).getTime()-new Date(a.evaluatedAt||0).getTime())
-    .slice(0,3);
+  const recentNotifications=notifications.slice(0,3);
 
   return <AppLayout title="Meu desenvolvimento" description="Veja onde você está, o que falta e qual é o próximo passo da sua carreira.">
-    {recentEvaluations.length>0&&<section className="employee-notifications">
-      <div className="employee-notifications-head"><div><p className="eyebrow">ATUALIZAÇÕES RECENTES</p><h2>Seu gestor avaliou seu desenvolvimento</h2></div><span>{recentEvaluations.length} atualização(ões)</span></div>
-      <div className="employee-notification-list">{recentEvaluations.map(item=><article className={'employee-notification '+(item.status==='COMPLETED'?'approved':item.status==='REJECTED'?'rejected':'progress')} key={item.key}>
-        <div className="employee-notification-icon">{item.status==='COMPLETED'?'✓':item.status==='REJECTED'?'!':'↗'}</div>
-        <div><strong>{item.name}</strong><span>{item.status==='COMPLETED'?'Qualificação concluída':item.status==='REJECTED'?'Seu envio precisa de revisão':'Seu gestor marcou como em andamento'}</span>{item.notes&&<p>{item.notes}</p>}<small>{item.evaluator?.name?'Avaliado por '+item.evaluator.name+' · ':''}{item.evaluatedAt?new Date(item.evaluatedAt).toLocaleDateString('pt-BR'):''}</small></div>
+    {recentNotifications.length>0&&<section className="employee-notifications">
+      <div className="employee-notifications-head"><div><p className="eyebrow">ATUALIZAÇÕES NÃO LIDAS</p><h2>Novidades no seu desenvolvimento</h2></div><span>{notifications.length} não lida(s)</span></div>
+      <div className="employee-notification-list">{recentNotifications.map(item=><article className={'employee-notification '+(item.type==='QUALIFICATION_EVALUATED'?'approved':item.type==='CAREER_STEP_CHANGED'?'progress':'progress')} key={item.id}>
+        <div className="employee-notification-icon">{item.type==='QUALIFICATION_EVALUATED'?'✓':'↗'}</div>
+        <div><strong>{item.title}</strong><span>{item.message}</span><small>{new Date(item.createdAt).toLocaleString('pt-BR')}</small></div>
       </article>)}</div>
     </section>}
 
