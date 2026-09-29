@@ -1,9 +1,9 @@
 'use client';
-import { useEffect,useState } from 'react';
+import { useEffect,useMemo,useState } from 'react';
 import { AppLayout } from '../../components/app-layout';
 import { api } from '../../lib/api';
 import { useSessionUser } from '../../lib/use-session';
-import { FiPlus,FiX } from 'react-icons/fi';
+import { FiBriefcase,FiChevronDown,FiPlus,FiSearch,FiUsers,FiX } from 'react-icons/fi';
 
 type Team={id:string;name:string};
 type Qualification={id:string;name:string;type:string;description?:string;team?:Team|null};
@@ -35,6 +35,8 @@ export default function Cargos(){
   const [savingRequirements,setSavingRequirements]=useState(false);
   const [qualificationQuery,setQualificationQuery]=useState('');
   const [expandedStepId,setExpandedStepId]=useState('');
+  const [teamFilter,setTeamFilter]=useState('');
+  const [roleQuery,setRoleQuery]=useState('');
 
   async function load(){
     try{
@@ -50,7 +52,8 @@ export default function Cargos(){
     const order=steps.length;
     setSteps([...steps,{code:next,label:next.replace('STEP_','Step ').replace('BASE','Base'),order,salary:'',minTenureMonths:'0',minExperienceMonths:'0',minMonthsInCurrentStep:'0',qualificationIds:[]}]);
   }
-  function updateStep(index:number,key:keyof StepForm,value:string|number){setSteps(steps.map((s,i)=>i===index?{...s,[key]:value}:s))}
+type StepScalarKey=Exclude<keyof StepForm,'qualificationIds'>;
+  function updateStep(index:number,key:StepScalarKey,value:string|number){setSteps(steps.map((s,i)=>i===index?{...s,[key]:value}:s))}
   function removeStep(index:number){if(index===0)return;setSteps(steps.filter((_,i)=>i!==index).map((s,i)=>({...s,order:i})))}
   function toggleCreateQualification(index:number,id:string){
     setSteps(current=>current.map((step,i)=>i===index?{...step,qualificationIds:step.qualificationIds.includes(id)?step.qualificationIds.filter(x=>x!==id):[...step.qualificationIds,id]}:step));
@@ -117,10 +120,53 @@ export default function Cargos(){
   }
 
   const filteredQualifications=qualifications.filter(q=>[q.name,q.description,typeLabel[q.type]].some(v=>v?.toLowerCase().includes(qualificationQuery.toLowerCase())));
+  const visibleRoles=useMemo(()=>data.filter(role=>{
+    const matchesTeam=!teamFilter||role.team.id===teamFilter;
+    const q=roleQuery.trim().toLowerCase();
+    const matchesQuery=!q||[role.name,role.description,role.team.name].some(value=>value?.toLowerCase().includes(q));
+    return matchesTeam&&matchesQuery;
+  }),[data,teamFilter,roleQuery]);
+
+  const groupedRoles=useMemo(()=>teams.map(team=>({
+    team,
+    roles:visibleRoles.filter(role=>role.team.id===team.id),
+  })).filter(group=>group.roles.length>0),[teams,visibleRoles]);
 
   return <AppLayout title="Cargos e steps" description="Configure trilhas de carreira e as qualificações exigidas em cada etapa." action={sessionUser?.systemRole==='ADMIN'?<button className="primary-action action-with-icon" onClick={()=>setOpen(true)}><FiPlus/> Novo cargo</button>:undefined}>
     {error&&<div className="form-error">{error}</div>}
-    <section className="roles-list">{data.map(r=><article className="role-card" key={r.id}>
+
+    <section className="roles-toolbar">
+      <div className="roles-toolbar-copy">
+        <strong>{visibleRoles.length}</strong>
+        <span>cargo(s) exibido(s)</span>
+      </div>
+      <label className="search-field roles-search"><FiSearch/><input value={roleQuery} onChange={e=>setRoleQuery(e.target.value)} placeholder="Buscar cargo, descrição ou time..."/></label>
+      <select className="roles-team-select" value={teamFilter} onChange={e=>setTeamFilter(e.target.value)}>
+        <option value="">Todos os times</option>
+        {teams.map(team=><option key={team.id} value={team.id}>{team.name}</option>)}
+      </select>
+    </section>
+
+    <div className="roles-team-tabs">
+      <button className={!teamFilter?'active':''} onClick={()=>setTeamFilter('')}>Todos <span>{data.length}</span></button>
+      {teams.map(team=>{
+        const count=data.filter(role=>role.team.id===team.id).length;
+        return <button key={team.id} className={teamFilter===team.id?'active':''} onClick={()=>setTeamFilter(team.id)}>{team.name}<span>{count}</span></button>
+      })}
+    </div>
+
+    <section className="roles-by-team">
+      {groupedRoles.map(group=><section className="role-team-section" key={group.team.id}>
+        <header className="role-team-header">
+          <div className="role-team-icon"><FiUsers/></div>
+          <div className="role-team-heading"><p className="eyebrow">TIME</p><h2>{group.team.name}</h2><span>{group.roles.length} cargo(s) estruturado(s)</span></div>
+          <div className="role-team-metrics">
+            <div><FiBriefcase/><strong>{group.roles.length}</strong><span>Cargos</span></div>
+            <div><FiUsers/><strong>{group.roles.reduce((sum,role)=>sum+role._count.users,0)}</strong><span>Colaboradores</span></div>
+          </div>
+        </header>
+
+        <div className="roles-list">{group.roles.map(r=><article className="role-card" key={r.id}>
       <div className="role-title"><div><p className="eyebrow">{r.team.name}</p><h2>{r.name}</h2><span>{r.description||r._count.users+' colaborador(es)'}</span></div>{sessionUser?.systemRole==='ADMIN'&&<button className="secondary-button" onClick={()=>openRequirements(r)}>Configurar qualificações</button>}</div>
       <div className="role-summary"><span>{r.steps.length} step(s)</span><span>{r.steps.reduce((sum,s)=>sum+s.requirements.length,0)} requisito(s) configurado(s)</span><span>{r._count.users} colaborador(es)</span></div>
       <div className="step-cards">{r.steps.map((s,i)=>{
@@ -131,7 +177,7 @@ export default function Cargos(){
             <div className="step-card-title"><small>{s.code}</small><strong>{s.label}</strong></div>
             <div className="step-card-salary"><small>SALÁRIO</small><strong>R$ {Number(s.salary).toLocaleString('pt-BR',{minimumFractionDigits:2})}</strong></div>
             <div className="step-card-count"><b>{s.requirements.length}</b><span>qualificações</span></div>
-            <div className="step-card-chevron">{expanded?'⌃':'⌄'}</div>
+            <div className={'step-card-chevron '+(expanded?'expanded':'')}><FiChevronDown/></div>
           </button>
           {expanded&&<div className="step-card-details">
             <div className="step-detail-head"><div><p className="eyebrow">QUALIFICAÇÕES REQUERIDAS</p><h3>{s.label}</h3></div>{sessionUser?.systemRole==='ADMIN'&&<button className="text-button" onClick={()=>openRequirements(r)}>Editar requisitos →</button>}</div>
@@ -139,8 +185,11 @@ export default function Cargos(){
           </div>}
         </div>
       })}</div>
-    </article>)}</section>
-    {!data.length&&!error&&<div className="empty-state"><b>Nenhum cargo cadastrado</b><span>Crie cargos e seus steps para visualizar as trilhas de carreira.</span></div>}
+    </article>)}</div>
+      </section>)}
+    </section>
+
+    {!groupedRoles.length&&!error&&<div className="empty-state modern"><div className="empty-icon"><FiBriefcase/></div><b>Nenhum cargo encontrado</b><span>{data.length?'Ajuste o time selecionado ou o termo da busca.':'Crie cargos e seus steps para visualizar as trilhas de carreira.'}</span></div>}
 
     {open&&<div className="modal-backdrop"><div className="modal modal-xl">
       <div className="modal-head"><div><p className="eyebrow">CARREIRA</p><h2>Novo cargo</h2><p>Configure o cargo e a trilha salarial por steps.</p></div><button className="modal-close" onClick={()=>setOpen(false)} aria-label="Fechar"><FiX/></button></div>
