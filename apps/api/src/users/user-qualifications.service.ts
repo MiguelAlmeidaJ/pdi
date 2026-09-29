@@ -1,16 +1,17 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { QualificationStatus, SystemRole } from '@prisma/client';
+import { NotificationType, QualificationStatus, SystemRole } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service';
 import { SetUserQualificationDto } from './dto/set-user-qualification.dto';
 import { SubmitQualificationDto } from './dto/submit-qualification.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class UserQualificationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private readonly notifications: NotificationsService) {}
 
   async set(userId: string, qualificationId: string, dto: SetUserQualificationDto, evaluatorId: string) {
     const [user, qualification] = await Promise.all([
-      this.prisma.user.findUnique({ where: { id: userId } }),
+      this.prisma.user.findUnique({ where: { id: userId }, select: { id: true, teamId: true, managerId: true } }),
       this.prisma.qualification.findUnique({ where: { id: qualificationId } }),
     ]);
     if (!user) throw new NotFoundException('Usuário não encontrado');
@@ -34,7 +35,7 @@ export class UserQualificationsService {
           : new Date()
         : null;
 
-    return this.prisma.userQualification.upsert({
+    const result = await this.prisma.userQualification.upsert({
       where: { userId_qualificationId: { userId, qualificationId } },
       create: {
         userId,
@@ -59,6 +60,28 @@ export class UserQualificationsService {
         evaluator: { select: { id: true, name: true, email: true } },
       },
     });
+
+    const statusText: Record<string, string> = {
+      COMPLETED: 'foi concluída',
+      REJECTED: 'precisa ser revisada',
+      IN_PROGRESS: 'foi marcada como em andamento',
+      PENDING: 'voltou para pendente',
+    };
+
+    await this.notifications.create({
+      userId,
+      type: NotificationType.QUALIFICATION_EVALUATED,
+      title: 'Qualificação avaliada',
+      message: qualification.name + ' ' + (statusText[dto.status] ?? 'foi atualizada'),
+      href: '/meu-pdi',
+      metadata: {
+        qualificationId,
+        status: dto.status,
+        evaluatorId,
+      },
+    });
+
+    return result;
   }
 
   async submitByUser(userId: string, qualificationId: string, dto: SubmitQualificationDto) {
@@ -112,7 +135,7 @@ export class UserQualificationsService {
       throw new BadRequestException('Esta qualificação já foi concluída');
     }
 
-    return this.prisma.userQualification.upsert({
+    const result = await this.prisma.userQualification.upsert({
       where: { userId_qualificationId: { userId, qualificationId } },
       create: {
         userId,
@@ -138,6 +161,31 @@ export class UserQualificationsService {
         evaluator: { select: { id: true, name: true, email: true } },
       },
     });
+
+    let recipientIds: string[] = [];
+    if (user.managerId) {
+      recipientIds = [user.managerId];
+    } else {
+      const managers = await this.prisma.user.findMany({
+        where: { teamId: user.teamId, systemRole: SystemRole.MANAGER, active: true },
+        select: { id: true },
+      });
+      recipientIds = managers.map((manager) => manager.id);
+    }
+
+    await this.notifications.createMany(recipientIds.map((recipientId) => ({
+      userId: recipientId,
+      type: NotificationType.QUALIFICATION_SUBMITTED,
+      title: 'Nova evidência para avaliar',
+      message: qualification.name + ' foi enviada para avaliação',
+      href: '/avaliacoes',
+      metadata: {
+        collaboratorId: userId,
+        qualificationId,
+      },
+    })));
+
+    return result;
   }
 
   async countPendingReviews(actor: { sub: string; systemRole: SystemRole }) {
