@@ -4,6 +4,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Roles } from '../auth/roles.decorator';
 import { CreateUserDto } from './dto/create-user.dto';
 import { SetUserQualificationDto } from './dto/set-user-qualification.dto';
+import { ChangeCareerStepDto } from './dto/change-career-step.dto';
 import { UsersService } from './users.service';
 import { DevelopmentService } from './development.service';
 import { UserQualificationsService } from './user-qualifications.service';
@@ -29,6 +30,12 @@ export class UsersController {
   @Roles(SystemRole.ADMIN, SystemRole.MANAGER)
   @Get(':id')
   findOne(@Param('id') id: string) { return this.users.findOne(id); }
+
+  @Roles(SystemRole.ADMIN, SystemRole.MANAGER)
+  @Put(':id/career-step')
+  changeCareerStep(@Param('id') id: string, @Body() dto: ChangeCareerStepDto) {
+    return this.users.changeCareerStep(id, dto);
+  }
 
   @Roles(SystemRole.ADMIN, SystemRole.MANAGER)
   @Get(':id/development')
