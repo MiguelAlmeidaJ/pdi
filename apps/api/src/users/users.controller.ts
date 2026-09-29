@@ -6,6 +6,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { SetUserQualificationDto } from './dto/set-user-qualification.dto';
 import { ChangeCareerStepDto } from './dto/change-career-step.dto';
 import { SubmitQualificationDto } from './dto/submit-qualification.dto';
+import { ChangeOwnPasswordDto } from './dto/change-own-password.dto';
 import { UsersService } from './users.service';
 import { DevelopmentService } from './development.service';
 import { UserQualificationsService } from './user-qualifications.service';
@@ -44,6 +45,15 @@ export class UsersController {
   @Get('me')
   getMe(@Request() request: AuthenticatedRequest) {
     return this.users.findOne(request.user.sub);
+  }
+
+  @Roles(SystemRole.USER, SystemRole.MANAGER, SystemRole.ADMIN)
+  @Put('me/password')
+  changeMyPassword(
+    @Body() dto: ChangeOwnPasswordDto,
+    @Request() request: AuthenticatedRequest,
+  ) {
+    return this.users.changeOwnPassword(request.user.sub, dto.currentPassword, dto.newPassword);
   }
 
   @Roles(SystemRole.USER, SystemRole.MANAGER, SystemRole.ADMIN)
