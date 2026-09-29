@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Request } from '@nestjs/common';
 import { SystemRole } from '@prisma/client';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Roles } from '../auth/roles.decorator';
@@ -13,7 +13,9 @@ export class TeamsController {
 
   @Roles(SystemRole.ADMIN, SystemRole.MANAGER)
   @Get()
-  findAll() { return this.teams.findAll(); }
+  findAll(@Request() request: { user: { sub: string; systemRole: SystemRole } }) {
+    return this.teams.findAll(request.user);
+  }
 
   @Roles(SystemRole.ADMIN)
   @Post()
