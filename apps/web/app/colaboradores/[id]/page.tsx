@@ -5,16 +5,38 @@ import { useParams } from 'next/navigation';
 import { AppLayout } from '../../../components/app-layout';
 import { api } from '../../../lib/api';
 
-type Profile={id:string;name:string;email:string;active:boolean;hiredAt:string;professionalSince?:string|null;systemRole:string;team?:{name:string}|null;role?:{name:string;description?:string|null}|null;currentRoleStep?:{label:string;code:string;salary:string}|null;manager?:{name:string;email:string}|null};
+type Profile={id:string;name:string;email:string;active:boolean;hiredAt:string;professionalSince?:string|null;currentRoleStepStartedAt?:string|null;systemRole:string;team?:{name:string}|null;role?:{id:string;name:string;description?:string|null;steps:{id:string;label:string;code:string;salary:string;order:number}[]}|null;currentRoleStep?:{id:string;label:string;code:string;salary:string;order:number}|null;manager?:{name:string;email:string}|null};
 type Requirement={key:string;name:string;type:string;met:boolean;status?:string;requiredMonths?:number;currentMonths?:number;description?:string|null;notes?:string|null};
-type Development={current:{role:{name:string};step:{label:string;code:string};salary:string};next:null|{label:string;code:string;salary:string};progress:{required:number;completed:number;percentage:number};requirements:Requirement[];eligibleForPromotion:boolean;careerComplete:boolean};
+type Development={current:{role:{name:string};step:{label:string;code:string};salary:string;startedAt?:string|null;monthsInCurrentStep?:number};next:null|{label:string;code:string;salary:string};progress:{required:number;completed:number;percentage:number};requirements:Requirement[];eligibleForPromotion:boolean;careerComplete:boolean};
 
 export default function Colaborador(){
   const {id}=useParams<{id:string}>();
   const [profile,setProfile]=useState<Profile|null>(null);
   const [dev,setDev]=useState<Development|null>(null);
   const [error,setError]=useState('');
-  useEffect(()=>{Promise.all([api<Profile>('/users/'+id),api<Development>('/users/'+id+'/development')]).then(([p,d])=>{setProfile(p);setDev(d)}).catch(e=>setError(e.message))},[id]);
+  const [moveOpen,setMoveOpen]=useState(false);
+  const [targetStepId,setTargetStepId]=useState('');
+  const [moveReason,setMoveReason]=useState('');
+  const [effectiveAt,setEffectiveAt]=useState('');
+  const [moving,setMoving]=useState(false);
+  async function load(){
+    try{
+      const [p,d]=await Promise.all([api<Profile>('/users/'+id),api<Development>('/users/'+id+'/development')]);
+      setProfile(p);setDev(d);setError('');
+    }catch(e){setError(e instanceof Error?e.message:'Erro ao carregar PDI')}
+  }
+  useEffect(()=>{load()},[id]);
+
+  async function moveCareerStep(){
+    if(!targetStepId||!moveReason.trim())return;
+    setMoving(true);setError('');
+    try{
+      await api('/users/'+id+'/career-step',{method:'PUT',body:JSON.stringify({targetRoleStepId:targetStepId,reason:moveReason,effectiveAt:effectiveAt||undefined})});
+      setMoveOpen(false);setTargetStepId('');setMoveReason('');setEffectiveAt('');
+      await load();
+    }catch(e){setError(e instanceof Error?e.message:'Erro ao alterar etapa')}
+    finally{setMoving(false)}
+  }
 
   if(error)return <AppLayout title="PDI individual" description="Detalhes do desenvolvimento do colaborador."><div className="form-error">{error}</div></AppLayout>;
   if(!profile||!dev)return <AppLayout title="PDI individual" description="Carregando dados do colaborador..."><div className="skeleton-card"/></AppLayout>;
@@ -28,7 +50,7 @@ export default function Colaborador(){
     <section className="profile-hero">
       <div className="avatar xl">{initials}</div>
       <div className="profile-main"><div className="profile-name-line"><h2>{profile.name}</h2><span className="status-pill">{profile.active?'Ativo':'Inativo'}</span></div><p>{profile.role?.name||'Sem cargo'} · {profile.team?.name||'Sem time'}</p><span>{profile.email}</span></div>
-      <div className="profile-side"><small>GESTOR</small><strong>{profile.manager?.name||'Não definido'}</strong></div>
+      <div className="profile-side"><small>GESTOR</small><strong>{profile.manager?.name||'Não definido'}</strong><button className="text-button profile-move-button" onClick={()=>{setTargetStepId(profile.currentRoleStep?.id||'');setMoveOpen(true)}}>Alterar etapa</button></div>
     </section>
 
     <section className="career-overview">
@@ -46,9 +68,20 @@ export default function Colaborador(){
       </article>
 
       <aside className="pdi-side">
-        <article className="panel info-card"><p className="eyebrow">INFORMAÇÕES</p><dl><div><dt>Admissão</dt><dd>{new Date(profile.hiredAt).toLocaleDateString('pt-BR')}</dd></div><div><dt>Perfil</dt><dd>{profile.systemRole}</dd></div><div><dt>Experiência desde</dt><dd>{profile.professionalSince?new Date(profile.professionalSince).toLocaleDateString('pt-BR'):'Não informado'}</dd></div></dl></article>
+        <article className="panel info-card"><p className="eyebrow">INFORMAÇÕES</p><dl><div><dt>Admissão</dt><dd>{new Date(profile.hiredAt).toLocaleDateString('pt-BR')}</dd></div><div><dt>Nível atual desde</dt><dd>{profile.currentRoleStepStartedAt?new Date(profile.currentRoleStepStartedAt).toLocaleDateString('pt-BR'):'Não informado'}</dd></div><div><dt>Tempo no nível</dt><dd>{dev.current.monthsInCurrentStep??0} mês(es)</dd></div><div><dt>Perfil</dt><dd>{profile.systemRole}</dd></div><div><dt>Experiência desde</dt><dd>{profile.professionalSince?new Date(profile.professionalSince).toLocaleDateString('pt-BR'):'Não informado'}</dd></div></dl></article>
         <article className="promotion-cta"><span>↗</span><h3>{dev.eligibleForPromotion?'Elegível para promoção':'Próxima promoção'}</h3><p>{dev.eligibleForPromotion?'Todos os requisitos foram concluídos. O gestor já pode iniciar a análise.':'Faltam '+missing+' requisito(s) para atingir o próximo step.'}</p><button className="primary-button" disabled={!dev.eligibleForPromotion}>{dev.eligibleForPromotion?'Iniciar solicitação':'Ainda não elegível'}</button></article>
       </aside>
     </section>
+    {moveOpen&&profile.role&&<div className="modal-backdrop"><div className="modal modal-lg">
+      <div className="modal-head"><div><p className="eyebrow">MOVIMENTAÇÃO DE CARREIRA</p><h2>Alterar etapa de {profile.name}</h2><p>O gestor pode avançar diretamente para outro nível. A justificativa ficará registrada no histórico.</p></div><button className="modal-close" onClick={()=>setMoveOpen(false)}>×</button></div>
+      <div className="career-move-current"><span>Atual</span><strong>{profile.currentRoleStep?.label||'Sem step'}</strong><b>→</b><span>Destino</span></div>
+      <div className="form-grid two">
+        <label>Nova etapa<select value={targetStepId} onChange={e=>setTargetStepId(e.target.value)}><option value="">Selecione...</option>{profile.role.steps.map(step=><option key={step.id} value={step.id} disabled={step.id===profile.currentRoleStep?.id}>{step.label} · R$ {Number(step.salary).toLocaleString('pt-BR',{minimumFractionDigits:2})}</option>)}</select></label>
+        <label>Data efetiva<input type="date" value={effectiveAt} onChange={e=>setEffectiveAt(e.target.value)}/><small className="field-help">Se vazio, será usada a data de hoje.</small></label>
+        <label className="span-2">Justificativa<textarea value={moveReason} onChange={e=>setMoveReason(e.target.value)} placeholder="Ex.: Colaborador demonstrou domínio técnico e maturidade para avançar diretamente ao Step 3."/></label>
+      </div>
+      <div className="override-note"><strong>Exceção permitida pelo gestor</strong><span>Esta movimentação pode pular níveis e não depende do tempo mínimo ou de 100% dos requisitos. A decisão ficará registrada com a justificativa informada.</span></div>
+      <div className="modal-actions"><button className="secondary-button" onClick={()=>setMoveOpen(false)}>Cancelar</button><button className="primary-action" disabled={moving||!targetStepId||targetStepId===profile.currentRoleStep?.id||moveReason.trim().length<5} onClick={moveCareerStep}>{moving?'Movendo...':'Confirmar movimentação'}</button></div>
+    </div></div>}
   </AppLayout>
 }
