@@ -1,5 +1,6 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import * as argon2 from 'argon2';
+import { SystemRole } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ChangeCareerStepDto } from './dto/change-career-step.dto';
@@ -8,8 +9,8 @@ import { ChangeCareerStepDto } from './dto/change-career-step.dto';
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(actor: { sub: string; systemRole: 'USER' | 'MANAGER' | 'ADMIN' }) {
-    const teamId = actor.systemRole === 'MANAGER' ? await this.getActorTeamId(actor.sub) : undefined;
+  async findAll(actor: { sub: string; systemRole: SystemRole }) {
+    const teamId = actor.systemRole === SystemRole.MANAGER ? await this.getActorTeamId(actor.sub) : undefined;
     return this.prisma.user.findMany({
       where: teamId ? { teamId } : undefined,
       select: {
@@ -29,7 +30,7 @@ export class UsersService {
     });
   }
 
-  async findOne(id: string, actor?: { sub: string; systemRole: 'USER' | 'MANAGER' | 'ADMIN' }) {
+  async findOne(id: string, actor?: { sub: string; systemRole: SystemRole }) {
     if (actor) await this.assertCanAccessUser(actor, id);
     const user = await this.prisma.user.findUnique({
       where: { id },
@@ -140,7 +141,7 @@ export class UsersService {
   async changeCareerStep(
     userId: string,
     dto: ChangeCareerStepDto,
-    actor: { sub: string; systemRole: 'USER' | 'MANAGER' | 'ADMIN' },
+    actor: { sub: string; systemRole: SystemRole },
   ) {
     await this.assertCanAccessUser(actor, userId);
 
@@ -206,12 +207,12 @@ export class UsersService {
     });
   }
   async assertCanAccessUser(
-    actor: { sub: string; systemRole: 'USER' | 'MANAGER' | 'ADMIN' },
+    actor: { sub: string; systemRole: SystemRole },
     targetUserId: string,
   ) {
-    if (actor.systemRole === 'ADMIN') return;
+    if (actor.systemRole === SystemRole.ADMIN) return;
 
-    if (actor.systemRole !== 'MANAGER') {
+    if (actor.systemRole !== SystemRole.MANAGER) {
       throw new ForbiddenException('Apenas administradores e gerentes podem acessar este recurso');
     }
 
