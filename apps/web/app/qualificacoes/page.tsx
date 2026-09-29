@@ -45,7 +45,8 @@ export default function Qualificacoes(){
   }
 
   function openCreate(){
-    setForm({name:'',type:'KNOWLEDGE',description:'',referenceUrl:'',teamId:teamId||''});
+    const ownTeamId=sessionUser?.systemRole==='MANAGER'?(teams[0]?.id||''):(teamId||'');
+    setForm({name:'',type:'KNOWLEDGE',description:'',referenceUrl:'',teamId:ownTeamId});
     setOpen(true);
   }
 
@@ -57,7 +58,7 @@ export default function Qualificacoes(){
         <button className={!teamId?'filter-chip active':'filter-chip'} onClick={()=>setTeamId('')}>Todos os times</button>
         {teams.map(t=><button key={t.id} className={teamId===t.id?'filter-chip active':'filter-chip'} onClick={()=>setTeamId(t.id)}>{t.name}</button>)}
       </div>
-      {sessionUser?.systemRole==='ADMIN'&&<button className="primary-action action-with-icon" onClick={openCreate}><FiPlus/> Nova qualificação</button>}
+      {sessionUser&&(sessionUser.systemRole==='ADMIN'||sessionUser.systemRole==='MANAGER')&&<button className="primary-action action-with-icon" onClick={openCreate}><FiPlus/> Nova qualificação</button>}
     </div>
 
     <div className="table-panel">
@@ -78,7 +79,7 @@ export default function Qualificacoes(){
     {open&&<div className="modal-backdrop"><div className="modal modal-lg">
       <div className="modal-head"><div><p className="eyebrow">REQUISITOS</p><h2>Nova qualificação</h2><p>Cadastre uma qualificação vinculada ao time correto.</p></div><button className="modal-close" onClick={()=>setOpen(false)} aria-label="Fechar"><FiX/></button></div>
       <div className="form-grid two">
-        <label>Time<select value={form.teamId} onChange={e=>setForm({...form,teamId:e.target.value})}><option value="">Selecione...</option>{teams.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></label>
+        <label>Time<select value={form.teamId} onChange={e=>setForm({...form,teamId:e.target.value})} disabled={sessionUser?.systemRole==='MANAGER'}><option value="">Selecione...</option>{teams.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select>{sessionUser?.systemRole==='MANAGER'&&<small className="field-help">A qualificação será criada no seu time.</small>}</label>
         <label>Tipo<select value={form.type} onChange={e=>setForm({...form,type:e.target.value})}><option value="COURSE">Curso</option><option value="KNOWLEDGE">Conhecimento</option><option value="TENURE">Tempo de casa</option><option value="EXPERIENCE">Experiência</option></select></label>
         <label className="span-2">Nome<input value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Ex.: Atendimento ao cliente"/></label>
         <label className="span-2">Descrição<textarea value={form.description} onChange={e=>setForm({...form,description:e.target.value})} placeholder="Descreva o que deve ser comprovado"/></label>
