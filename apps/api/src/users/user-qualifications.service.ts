@@ -1,5 +1,5 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { QualificationStatus } from '@prisma/client';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { QualificationStatus, SystemRole } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service';
 import { SetUserQualificationDto } from './dto/set-user-qualification.dto';
 import { SubmitQualificationDto } from './dto/submit-qualification.dto';
@@ -137,6 +137,42 @@ export class UserQualificationsService {
         qualification: true,
         evaluator: { select: { id: true, name: true, email: true } },
       },
+    });
+  }
+
+  async findPendingReviews(actor: { sub: string; systemRole: SystemRole }) {
+    let teamId: string | undefined;
+
+    if (actor.systemRole === SystemRole.MANAGER) {
+      const manager = await this.prisma.user.findUnique({
+        where: { id: actor.sub },
+        select: { teamId: true, active: true },
+      });
+      if (!manager?.active) throw new ForbiddenException('Gerente não encontrado ou inativo');
+      teamId = manager.teamId;
+    }
+
+    return this.prisma.userQualification.findMany({
+      where: {
+        status: QualificationStatus.AWAITING_REVIEW,
+        user: teamId ? { teamId } : undefined,
+      },
+      include: {
+        qualification: {
+          select: { id: true, name: true, type: true, description: true },
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            team: { select: { id: true, name: true } },
+            role: { select: { id: true, name: true } },
+            currentRoleStep: { select: { id: true, label: true, code: true, order: true } },
+          },
+        },
+      },
+      orderBy: [{ submittedAt: 'asc' }, { user: { name: 'asc' } }],
     });
   }
 
