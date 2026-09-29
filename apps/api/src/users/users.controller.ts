@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Request } from '@nestjs/common';
 import { SystemRole } from '@prisma/client';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Roles } from '../auth/roles.decorator';
@@ -8,6 +8,14 @@ import { ChangeCareerStepDto } from './dto/change-career-step.dto';
 import { UsersService } from './users.service';
 import { DevelopmentService } from './development.service';
 import { UserQualificationsService } from './user-qualifications.service';
+
+type AuthenticatedRequest = {
+  user: {
+    sub: string;
+    email: string;
+    systemRole: SystemRole;
+  };
+};
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -21,37 +29,55 @@ export class UsersController {
 
   @Roles(SystemRole.ADMIN, SystemRole.MANAGER)
   @Get()
-  findAll() { return this.users.findAll(); }
+  findAll(@Request() request: AuthenticatedRequest) {
+    return this.users.findAll(request.user);
+  }
 
   @Roles(SystemRole.ADMIN)
   @Post()
-  create(@Body() dto: CreateUserDto) { return this.users.create(dto); }
+  create(@Body() dto: CreateUserDto) {
+    return this.users.create(dto);
+  }
 
   @Roles(SystemRole.ADMIN, SystemRole.MANAGER)
   @Get(':id')
-  findOne(@Param('id') id: string) { return this.users.findOne(id); }
+  findOne(@Param('id') id: string, @Request() request: AuthenticatedRequest) {
+    return this.users.findOne(id, request.user);
+  }
 
   @Roles(SystemRole.ADMIN, SystemRole.MANAGER)
   @Put(':id/career-step')
-  changeCareerStep(@Param('id') id: string, @Body() dto: ChangeCareerStepDto) {
-    return this.users.changeCareerStep(id, dto);
+  changeCareerStep(
+    @Param('id') id: string,
+    @Body() dto: ChangeCareerStepDto,
+    @Request() request: AuthenticatedRequest,
+  ) {
+    return this.users.changeCareerStep(id, dto, request.user);
   }
 
   @Roles(SystemRole.ADMIN, SystemRole.MANAGER)
   @Get(':id/development')
-  getDevelopment(@Param('id') id: string) { return this.development.getDevelopment(id); }
+  async getDevelopment(@Param('id') id: string, @Request() request: AuthenticatedRequest) {
+    await this.users.assertCanAccessUser(request.user, id);
+    return this.development.getDevelopment(id);
+  }
 
   @Roles(SystemRole.ADMIN, SystemRole.MANAGER)
   @Get(':id/qualifications')
-  getQualifications(@Param('id') id: string) { return this.userQualifications.findAll(id); }
+  async getQualifications(@Param('id') id: string, @Request() request: AuthenticatedRequest) {
+    await this.users.assertCanAccessUser(request.user, id);
+    return this.userQualifications.findAll(id);
+  }
 
   @Roles(SystemRole.ADMIN, SystemRole.MANAGER)
   @Put(':id/qualifications/:qualificationId')
-  setQualification(
+  async setQualification(
     @Param('id') id: string,
     @Param('qualificationId') qualificationId: string,
     @Body() dto: SetUserQualificationDto,
+    @Request() request: AuthenticatedRequest,
   ) {
+    await this.users.assertCanAccessUser(request.user, id);
     return this.userQualifications.set(id, qualificationId, dto);
   }
 }
