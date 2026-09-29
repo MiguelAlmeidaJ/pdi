@@ -148,6 +148,7 @@ model Qualification {
   team Team? @relation(fields: [teamId], references: [id])
   roleStepRequirements RoleStepQualification[]
   userQualifications UserQualification[]
+  links QualificationLink[]
   @@unique([teamId, name, type])
   @@index([teamId])
 }
@@ -247,4 +248,17 @@ model Notification {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@index([userId, readAt, createdAt])
   @@index([type, createdAt])
+}
+
+
+model QualificationLink {
+  id String @id @default(cuid())
+  qualificationId String
+  title String
+  url String
+  order Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  qualification Qualification @relation(fields: [qualificationId], references: [id], onDelete: Cascade)
+  @@index([qualificationId, order])
 }
