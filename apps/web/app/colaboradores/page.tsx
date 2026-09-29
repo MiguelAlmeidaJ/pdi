@@ -16,7 +16,7 @@ export default function Colaboradores(){
   const [error,setError]=useState('');
   const [open,setOpen]=useState(false);
   const [saving,setSaving]=useState(false);
-  const [form,setForm]=useState({name:'',email:'',password:'',systemRole:'USER',hiredAt:'',professionalSince:'',teamId:'',roleId:'',currentRoleStepId:'',managerId:''});
+  const [form,setForm]=useState({name:'',email:'',password:'',systemRole:'USER',hiredAt:'',professionalSince:'',teamId:'',roleId:'',currentRoleStepId:'',currentRoleStepStartedAt:'',managerId:''});
 
   async function load(){
     try{
@@ -41,10 +41,10 @@ export default function Colaboradores(){
       await api('/users',{method:'POST',body:JSON.stringify({
         name:form.name,email:form.email,password:form.password,systemRole:form.systemRole,
         hiredAt:form.hiredAt,professionalSince:form.professionalSince||undefined,teamId:form.teamId,
-        roleId:form.roleId||undefined,currentRoleStepId:form.currentRoleStepId||undefined,managerId:form.managerId||undefined
+        roleId:form.roleId||undefined,currentRoleStepId:form.currentRoleStepId||undefined,currentRoleStepStartedAt:form.currentRoleStepStartedAt||undefined,managerId:form.managerId||undefined
       })});
       setOpen(false);
-      setForm({name:'',email:'',password:'',systemRole:'USER',hiredAt:'',professionalSince:'',teamId:'',roleId:'',currentRoleStepId:'',managerId:''});
+      setForm({name:'',email:'',password:'',systemRole:'USER',hiredAt:'',professionalSince:'',teamId:'',roleId:'',currentRoleStepId:'',currentRoleStepStartedAt:'',managerId:''});
       await load();
     }catch(e){setError(e instanceof Error?e.message:'Erro ao criar colaborador')}
     finally{setSaving(false)}
@@ -78,7 +78,7 @@ export default function Colaboradores(){
         <label>Experiência profissional desde<input type="date" value={form.professionalSince} onChange={e=>change('professionalSince',e.target.value)}/></label>
         <label>Time<select value={form.teamId} onChange={e=>change('teamId',e.target.value)}><option value="">Selecione...</option>{teams.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></label>
         <label>Cargo<select value={form.roleId} onChange={e=>change('roleId',e.target.value)} disabled={!form.teamId}><option value="">Sem cargo</option>{availableRoles.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></label>
-        <label>Step inicial<select value={form.currentRoleStepId} onChange={e=>change('currentRoleStepId',e.target.value)} disabled={!selectedRole}><option value="">Sem step</option>{selectedRole?.steps.map(s=><option key={s.id} value={s.id}>{s.label} · R$ {Number(s.salary).toLocaleString('pt-BR',{minimumFractionDigits:2})}</option>)}</select></label>
+        <label>Step atual<select value={form.currentRoleStepId} onChange={e=>change('currentRoleStepId',e.target.value)} disabled={!selectedRole}><option value="">Sem step</option>{selectedRole?.steps.map(s=><option key={s.id} value={s.id}>{s.label} · R$ {Number(s.salary).toLocaleString('pt-BR',{minimumFractionDigits:2})}</option>)}</select></label><label>Está neste nível desde<input type="date" value={form.currentRoleStepStartedAt} onChange={e=>change('currentRoleStepStartedAt',e.target.value)} disabled={!form.currentRoleStepId}/><small className="field-help">Use a data real em que entrou neste nível. Se vazio, usaremos a admissão.</small></label>
         <label>Gestor<select value={form.managerId} onChange={e=>change('managerId',e.target.value)}><option value="">Não definido</option>{managers.map(m=><option key={m.id} value={m.id}>{m.name}</option>)}</select></label>
       </div>
       <div className="modal-actions"><button className="secondary-button" onClick={()=>setOpen(false)}>Cancelar</button><button className="primary-action" disabled={saving||!form.name||!form.email||!form.password||!form.hiredAt||!form.teamId} onClick={create}>{saving?'Salvando...':'Criar colaborador'}</button></div>
