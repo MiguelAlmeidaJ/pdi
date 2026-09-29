@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import * as argon2 from 'argon2';
 import { PrismaService } from '../database/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -8,8 +8,10 @@ import { ChangeCareerStepDto } from './dto/change-career-step.dto';
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll() {
+  async findAll(actor: { sub: string; systemRole: 'USER' | 'MANAGER' | 'ADMIN' }) {
+    const teamId = actor.systemRole === 'MANAGER' ? await this.getActorTeamId(actor.sub) : undefined;
     return this.prisma.user.findMany({
+      where: teamId ? { teamId } : undefined,
       select: {
         id: true,
         name: true,
@@ -27,7 +29,8 @@ export class UsersService {
     });
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, actor?: { sub: string; systemRole: 'USER' | 'MANAGER' | 'ADMIN' }) {
+    if (actor) await this.assertCanAccessUser(actor, id);
     const user = await this.prisma.user.findUnique({
       where: { id },
       select: {
@@ -134,7 +137,13 @@ export class UsersService {
     });
   }
 
-  async changeCareerStep(userId: string, dto: ChangeCareerStepDto) {
+  async changeCareerStep(
+    userId: string,
+    dto: ChangeCareerStepDto,
+    actor: { sub: string; systemRole: 'USER' | 'MANAGER' | 'ADMIN' },
+  ) {
+    await this.assertCanAccessUser(actor, userId);
+
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: { currentRoleStep: true, role: true },
@@ -195,5 +204,37 @@ export class UsersService {
         reason,
       };
     });
+  }
+  async assertCanAccessUser(
+    actor: { sub: string; systemRole: 'USER' | 'MANAGER' | 'ADMIN' },
+    targetUserId: string,
+  ) {
+    if (actor.systemRole === 'ADMIN') return;
+
+    if (actor.systemRole !== 'MANAGER') {
+      throw new ForbiddenException('Apenas administradores e gerentes podem acessar este recurso');
+    }
+
+    const [actorTeamId, target] = await Promise.all([
+      this.getActorTeamId(actor.sub),
+      this.prisma.user.findUnique({
+        where: { id: targetUserId },
+        select: { id: true, teamId: true },
+      }),
+    ]);
+
+    if (!target) throw new NotFoundException('Usuário não encontrado');
+    if (!actorTeamId || target.teamId !== actorTeamId) {
+      throw new ForbiddenException('Gerentes só podem acessar colaboradores do próprio time');
+    }
+  }
+
+  private async getActorTeamId(actorId: string) {
+    const actor = await this.prisma.user.findUnique({
+      where: { id: actorId },
+      select: { teamId: true, active: true },
+    });
+    if (!actor || !actor.active) throw new ForbiddenException('Usuário responsável não encontrado ou inativo');
+    return actor.teamId;
   }
 }
