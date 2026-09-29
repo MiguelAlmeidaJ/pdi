@@ -74,7 +74,8 @@ model User {
   currentRoleStep RoleStep? @relation("CurrentRoleStep", fields: [currentRoleStepId], references: [id])
   manager User? @relation("UserManager", fields: [managerId], references: [id])
   directReports User[] @relation("UserManager")
-  qualifications UserQualification[]
+  qualifications UserQualification[] @relation("UserQualificationOwner")
+  qualificationEvaluations UserQualification[] @relation("UserQualificationEvaluator")
   promotionRequests PromotionRequest[] @relation("PromotionRequester")
   approvals PromotionRequest[] @relation("PromotionApprover")
   careerHistory CareerHistory[]
@@ -160,12 +161,16 @@ model UserQualification {
   completedAt DateTime?
   evidenceUrl String?
   notes String?
+  evaluatorId String?
+  evaluatedAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation("UserQualificationOwner", fields: [userId], references: [id], onDelete: Cascade)
+  evaluator User? @relation("UserQualificationEvaluator", fields: [evaluatorId], references: [id])
   qualification Qualification @relation(fields: [qualificationId], references: [id])
   @@unique([userId, qualificationId])
   @@index([qualificationId])
+  @@index([evaluatorId])
 }
 
 model PromotionRequest {
