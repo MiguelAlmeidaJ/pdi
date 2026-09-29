@@ -24,6 +24,7 @@ export class QualificationsService {
       where: scopedTeamId ? { teamId: scopedTeamId } : undefined,
       include: {
         team: { select: { id: true, name: true } },
+        links: { orderBy: { order: 'asc' } },
         _count: { select: { roleStepRequirements: true, userQualifications: true } },
       },
       orderBy: [{ team: { name: 'asc' } }, { type: 'asc' }, { name: 'asc' }],
@@ -60,15 +61,39 @@ export class QualificationsService {
         name,
         type: dto.type,
         description: dto.description?.trim(),
-        referenceUrl: dto.referenceUrl,
+        links: dto.links?.length ? {
+          create: dto.links.map((link,index)=>({
+            title: link.title.trim(),
+            url: link.url,
+            order: index,
+          })),
+        } : undefined,
       },
-      include: { team: { select: { id: true, name: true } } },
+      include: {
+        team: { select: { id: true, name: true } },
+        links: { orderBy: { order: 'asc' } },
+      },
     });
   }
 
-  async update(id: string, dto: UpdateQualificationDto) {
+  async update(
+    id: string,
+    dto: UpdateQualificationDto,
+    actor: { sub: string; systemRole: SystemRole },
+  ) {
     const current = await this.prisma.qualification.findUnique({ where: { id } });
     if (!current) throw new NotFoundException('Qualificação não encontrada');
+
+    if (actor.systemRole === SystemRole.MANAGER) {
+      const manager = await this.prisma.user.findUnique({
+        where: { id: actor.sub },
+        select: { teamId: true, active: true },
+      });
+      if (!manager?.active) throw new ForbiddenException('Gerente não encontrado ou inativo');
+      if (current.teamId !== manager.teamId) {
+        throw new ForbiddenException('Gerentes só podem editar qualificações do próprio time');
+      }
+    }
 
     const name = dto.name?.trim() ?? current.name;
     const type = dto.type ?? current.type;
@@ -77,16 +102,39 @@ export class QualificationsService {
     });
     if (duplicate) throw new ConflictException('Qualificação já cadastrada neste time');
 
-    return this.prisma.qualification.update({
-      where: { id },
-      data: {
-        name: dto.name?.trim(),
-        type: dto.type,
-        description: dto.description?.trim(),
-        referenceUrl: dto.referenceUrl,
-        active: dto.active,
-      },
-      include: { team: { select: { id: true, name: true } } },
+    return this.prisma.$transaction(async (tx) => {
+      await tx.qualification.update({
+        where: { id },
+        data: {
+          name: dto.name?.trim(),
+          type: dto.type,
+          description: dto.description?.trim(),
+          active: dto.active,
+        },
+      });
+
+      if (dto.links) {
+        await tx.qualificationLink.deleteMany({ where: { qualificationId: id } });
+        if (dto.links.length) {
+          await tx.qualificationLink.createMany({
+            data: dto.links.map((link,index)=>({
+              qualificationId: id,
+              title: link.title.trim(),
+              url: link.url,
+              order: index,
+            })),
+          });
+        }
+      }
+
+      return tx.qualification.findUnique({
+        where: { id },
+        include: {
+          team: { select: { id: true, name: true } },
+          links: { orderBy: { order: 'asc' } },
+          _count: { select: { roleStepRequirements: true, userQualifications: true } },
+        },
+      });
     });
   }
 }
