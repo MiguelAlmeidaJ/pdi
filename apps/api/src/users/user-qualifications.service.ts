@@ -14,6 +14,9 @@ export class UserQualificationsService {
     ]);
     if (!user) throw new NotFoundException('Usuário não encontrado');
     if (!qualification || !qualification.active) throw new NotFoundException('Qualificação não encontrada ou inativa');
+    if (qualification.teamId && qualification.teamId !== user.teamId) {
+      throw new BadRequestException('A qualificação deve pertencer ao mesmo time do colaborador');
+    }
 
     if (dto.status === QualificationStatus.COMPLETED && !dto.completedAt) {
       throw new BadRequestException('completedAt é obrigatório quando a qualificação está concluída');
