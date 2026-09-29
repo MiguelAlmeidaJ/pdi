@@ -7,6 +7,7 @@ import { UsersModule } from './users/users.module';
 import { TeamsModule } from './teams/teams.module';
 import { RolesModule } from './roles/roles.module';
 import { QualificationsModule } from './qualifications/qualifications.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { QualificationsModule } from './qualifications/qualifications.module';
     TeamsModule,
     RolesModule,
     QualificationsModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
 })
