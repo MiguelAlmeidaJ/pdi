@@ -2,12 +2,14 @@
 import { useEffect,useMemo,useState } from 'react';
 import { AppLayout } from '../../components/app-layout';
 import { api } from '../../lib/api';
+import { useSessionUser } from '../../lib/use-session';
 
 type Team={id:string;name:string};
 type Q={id:string;name:string;type:string;description?:string;referenceUrl?:string;active:boolean;team?:Team|null;_count:{roleStepRequirements:number;userQualifications:number}};
 const labels:Record<string,string>={COURSE:'Curso',KNOWLEDGE:'Conhecimento',TENURE:'Tempo de casa',EXPERIENCE:'Experiência'};
 
 export default function Qualificacoes(){
+  const sessionUser=useSessionUser();
   const [data,setData]=useState<Q[]>([]);
   const [teams,setTeams]=useState<Team[]>([]);
   const [teamId,setTeamId]=useState('');
@@ -54,7 +56,7 @@ export default function Qualificacoes(){
         <button className={!teamId?'filter-chip active':'filter-chip'} onClick={()=>setTeamId('')}>Todos os times</button>
         {teams.map(t=><button key={t.id} className={teamId===t.id?'filter-chip active':'filter-chip'} onClick={()=>setTeamId(t.id)}>{t.name}</button>)}
       </div>
-      <button className="primary-action" onClick={openCreate}>+ Nova qualificação</button>
+      {sessionUser?.systemRole==='ADMIN'&&<button className="primary-action" onClick={openCreate}>+ Nova qualificação</button>}
     </div>
 
     <div className="table-panel">
