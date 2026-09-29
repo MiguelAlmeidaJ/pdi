@@ -18,7 +18,7 @@ export default function LoginPage() {
       const data=await api<LoginResponse>('/auth/login',{method:'POST',body:JSON.stringify({email,password})});
       localStorage.setItem('pdi_token',data.accessToken);
       localStorage.setItem('pdi_user',JSON.stringify(data.user));
-      router.push('/');
+      router.push(data.user.systemRole==='USER'?'/meu-pdi':'/');
     } catch(e){ setError(e instanceof Error?e.message:'Não foi possível entrar'); }
     finally{setLoading(false)}
   }
