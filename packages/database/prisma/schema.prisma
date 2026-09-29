@@ -35,6 +35,15 @@ enum QualificationStatus {
   REJECTED
 }
 
+enum NotificationType {
+  QUALIFICATION_SUBMITTED
+  QUALIFICATION_EVALUATED
+  CAREER_STEP_CHANGED
+  PROMOTION_REQUESTED
+  PROMOTION_DECIDED
+  FEEDBACK
+}
+
 enum PromotionStatus {
   DRAFT
   REQUESTED
@@ -80,6 +89,7 @@ model User {
   promotionRequests PromotionRequest[] @relation("PromotionRequester")
   approvals PromotionRequest[] @relation("PromotionApprover")
   careerHistory CareerHistory[]
+  notifications Notification[]
   @@index([teamId])
   @@index([roleId])
   @@index([currentRoleStepId])
@@ -221,4 +231,20 @@ model CareerHistory {
   role Role @relation(fields: [roleId], references: [id])
   roleStep RoleStep @relation(fields: [roleStepId], references: [id])
   @@index([userId, startedAt])
+}
+
+
+model Notification {
+  id String @id @default(cuid())
+  userId String
+  type NotificationType
+  title String
+  message String
+  href String?
+  metadata Json?
+  readAt DateTime?
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, readAt, createdAt])
+  @@index([type, createdAt])
 }
