@@ -140,6 +140,28 @@ export class UserQualificationsService {
     });
   }
 
+  async countPendingReviews(actor: { sub: string; systemRole: SystemRole }) {
+    let teamId: string | undefined;
+
+    if (actor.systemRole === SystemRole.MANAGER) {
+      const manager = await this.prisma.user.findUnique({
+        where: { id: actor.sub },
+        select: { teamId: true, active: true },
+      });
+      if (!manager?.active) throw new ForbiddenException('Gerente não encontrado ou inativo');
+      teamId = manager.teamId;
+    }
+
+    const count = await this.prisma.userQualification.count({
+      where: {
+        status: QualificationStatus.AWAITING_REVIEW,
+        user: teamId ? { teamId } : undefined,
+      },
+    });
+
+    return { count };
+  }
+
   async findPendingReviews(actor: { sub: string; systemRole: SystemRole }) {
     let teamId: string | undefined;
 
