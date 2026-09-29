@@ -20,7 +20,6 @@ export function AppHeader({
   return <header className="app-header">
     <div className="app-header-inner">
     <div className="app-header-copy">
-      <p className="eyebrow">{context}</p>
       <h1>{title}</h1>
       <p>{description}</p>
     </div>
