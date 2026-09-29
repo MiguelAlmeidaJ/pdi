@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect,useState } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { FiBriefcase,FiKey,FiMail,FiShield,FiUser,FiUsers,FiX } from 'react-icons/fi';
 import { AppLayout } from '../../components/app-layout';
 import { api } from '../../lib/api';
@@ -20,7 +19,6 @@ type Profile={
 };
 
 export default function Perfil(){
-  const searchParams=useSearchParams();
   const [profile,setProfile]=useState<Profile|null>(null);
   const [error,setError]=useState('');
   const [passwordOpen,setPasswordOpen]=useState(false);
@@ -31,8 +29,9 @@ export default function Perfil(){
   const [success,setSuccess]=useState('');
 
   useEffect(()=>{
-    if(searchParams.get('security')==='1')setPasswordOpen(true);
-  },[searchParams]);
+    const params=new URLSearchParams(window.location.search);
+    if(params.get('security')==='1')setPasswordOpen(true);
+  },[]);
 
   useEffect(()=>{
     api<Profile>('/users/me')
