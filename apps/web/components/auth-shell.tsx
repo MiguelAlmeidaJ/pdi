@@ -23,6 +23,10 @@ export function AuthShell({children}:{children:React.ReactNode}){
           router.replace('/meu-pdi');
           return;
         }
+        if(user.systemRole==='MANAGER'&&pathname.startsWith('/times')){
+          router.replace('/');
+          return;
+        }
       }catch{}
     }
 
