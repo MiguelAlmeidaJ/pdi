@@ -69,6 +69,12 @@ export class UsersController {
   }
 
   @Roles(SystemRole.ADMIN, SystemRole.MANAGER)
+  @Get('reviews/pending/count')
+  getPendingReviewCount(@Request() request: AuthenticatedRequest) {
+    return this.userQualifications.countPendingReviews(request.user);
+  }
+
+  @Roles(SystemRole.ADMIN, SystemRole.MANAGER)
   @Get('reviews/pending')
   getPendingReviews(@Request() request: AuthenticatedRequest) {
     return this.userQualifications.findPendingReviews(request.user);
