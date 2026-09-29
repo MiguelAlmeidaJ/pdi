@@ -3,12 +3,14 @@ import { useEffect,useMemo,useState } from 'react';
 import Link from 'next/link';
 import { AppLayout } from '../../components/app-layout';
 import { api } from '../../lib/api';
+import { useSessionUser } from '../../lib/use-session';
 
 type Team={id:string;name:string};
 type Role={id:string;name:string;team:{id:string;name:string};steps:{id:string;code:string;label:string;salary:string;order:number}[]};
 type User={id:string;name:string;email:string;systemRole:string;active:boolean;hiredAt:string;team?:Team|null;role?:{id:string;name:string}|null;currentRoleStep?:{id:string;code:string;label:string;salary:string;order:number}|null};
 
 export default function Colaboradores(){
+  const sessionUser=useSessionUser();
   const [data,setData]=useState<User[]>([]);
   const [teams,setTeams]=useState<Team[]>([]);
   const [roles,setRoles]=useState<Role[]>([]);
@@ -50,8 +52,9 @@ export default function Colaboradores(){
     finally{setSaving(false)}
   }
 
-  return <AppLayout title="Colaboradores" description="Acompanhe posição atual, carreira e desenvolvimento individual." action={<button className="primary-action" onClick={()=>setOpen(true)}>+ Novo colaborador</button>}>
+  return <AppLayout title="Colaboradores" description="Acompanhe posição atual, carreira e desenvolvimento individual." action={sessionUser?.systemRole==='ADMIN'?<button className="primary-action" onClick={()=>setOpen(true)}>+ Novo colaborador</button>:undefined}>
     {error&&<div className="form-error">{error}</div>}
+    {sessionUser?.systemRole==='MANAGER'&&<div className="scope-banner"><strong>Visão do gerente</strong><span>Você está vendo somente os colaboradores do seu time.</span></div>}
     <section className="people-toolbar"><div><strong>{data.length}</strong><span> colaboradores cadastrados</span></div><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar por nome, cargo ou time..."/></section>
     <section className="people-cards">
       {filtered.map(user=>{
