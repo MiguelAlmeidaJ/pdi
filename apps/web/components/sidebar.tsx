@@ -46,7 +46,7 @@ export function Sidebar(){
   const path=usePathname();
   const router=useRouter();
   const user=useSessionUser();
-  const items=user?.systemRole==='USER'?userItems:managementItems;
+  const items=user?.systemRole==='USER'?userItems:user?.systemRole==='MANAGER'?managementItems.filter(item=>item.href!=='/times'):managementItems;
   const initials=(user?.name||'Usuário').split(' ').slice(0,2).map(p=>p[0]).join('').toUpperCase();
   const [pendingReviews,setPendingReviews]=useState(0);
   const [profileOpen,setProfileOpen]=useState(false);
