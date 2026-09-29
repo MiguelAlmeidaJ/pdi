@@ -6,7 +6,7 @@ import { AppLayout } from '../../../components/app-layout';
 import { api } from '../../../lib/api';
 
 type Profile={id:string;name:string;email:string;active:boolean;hiredAt:string;professionalSince?:string|null;currentRoleStepStartedAt?:string|null;systemRole:string;team?:{name:string}|null;role?:{id:string;name:string;description?:string|null;steps:{id:string;label:string;code:string;salary:string;order:number}[]}|null;currentRoleStep?:{id:string;label:string;code:string;salary:string;order:number}|null;manager?:{name:string;email:string}|null;careerHistory:{id:string;startedAt:string;endedAt?:string|null;reason?:string|null;salary:string;role:{id:string;name:string};roleStep:{id:string;code:string;label:string;order:number}}[]};
-type Requirement={key:string;source?:'AUTO'|'QUALIFICATION';name:string;type:string;met:boolean;status?:string;requiredMonths?:number;currentMonths?:number;description?:string|null;notes?:string|null;evidenceUrl?:string|null;completedAt?:string|null;evaluatedAt?:string|null;evaluator?:{id:string;name:string}|null};
+type Requirement={key:string;source?:'AUTO'|'QUALIFICATION';name:string;type:string;met:boolean;status?:string;requiredMonths?:number;currentMonths?:number;description?:string|null;notes?:string|null;evidenceUrl?:string|null;submissionNotes?:string|null;submittedAt?:string|null;completedAt?:string|null;evaluatedAt?:string|null;evaluator?:{id:string;name:string}|null};
 type Development={current:{role:{name:string};step:{label:string;code:string};salary:string;startedAt?:string|null;monthsInCurrentStep?:number};next:null|{label:string;code:string;salary:string};progress:{required:number;completed:number;percentage:number};requirements:Requirement[];eligibleForPromotion:boolean;careerComplete:boolean};
 
 export default function Colaborador(){
@@ -35,7 +35,7 @@ export default function Colaborador(){
 
   function openEvaluation(requirement:Requirement){
     setEvaluationRequirement(requirement);
-    setEvaluationStatus(requirement.status||'PENDING');
+    setEvaluationStatus(requirement.status==='AWAITING_REVIEW'?'IN_PROGRESS':(requirement.status||'PENDING'));
     setEvaluationNotes(requirement.notes||'');
     setEvaluationEvidence(requirement.evidenceUrl||'');
     setEvaluationOpen(true);
@@ -95,7 +95,7 @@ export default function Colaborador(){
     <section className="pdi-grid">
       <article className="panel requirements-panel">
         <div className="panel-head"><div><p className="eyebrow">REQUISITOS</p><h2>Plano para o próximo step</h2></div><span className={dev.eligibleForPromotion?'ready-badge':'pending-badge'}>{dev.eligibleForPromotion?'Pronto para promoção':'Em desenvolvimento'}</span></div>
-        <div className="requirement-list">{dev.requirements.map(r=><div className={'requirement-item '+(r.met?'done':'')} key={r.key}><div className="requirement-check">{r.met?'✓':'○'}</div><div><strong>{r.name}</strong><span>{r.requiredMonths!=null?String(r.currentMonths||0)+' de '+String(r.requiredMonths)+' meses':r.description||r.notes||r.type}</span>{r.evaluator&&<small className="evaluation-meta">Avaliado por {r.evaluator.name}{r.evaluatedAt?' · '+new Date(r.evaluatedAt).toLocaleDateString('pt-BR'):''}</small>}{r.evidenceUrl&&<a className="requirement-evidence" href={r.evidenceUrl} target="_blank" rel="noreferrer">Ver evidência ↗</a>}</div><div className="requirement-actions"><em>{r.met?'Concluído':r.status==='IN_PROGRESS'?'Em andamento':r.status==='REJECTED'?'Rejeitada':'Pendente'}</em>{r.source==='QUALIFICATION'&&<button className="evaluate-button" onClick={()=>openEvaluation(r)}>Avaliar</button>}</div></div>)}</div>
+        <div className="requirement-list">{dev.requirements.map(r=><div className={'requirement-item '+(r.met?'done':'')} key={r.key}><div className="requirement-check">{r.met?'✓':'○'}</div><div><strong>{r.name}</strong><span>{r.requiredMonths!=null?String(r.currentMonths||0)+' de '+String(r.requiredMonths)+' meses':r.description||r.notes||r.type}</span>{r.evaluator&&<small className="evaluation-meta">Avaliado por {r.evaluator.name}{r.evaluatedAt?' · '+new Date(r.evaluatedAt).toLocaleDateString('pt-BR'):''}</small>}{r.evidenceUrl&&<a className="requirement-evidence" href={r.evidenceUrl} target="_blank" rel="noreferrer">Ver evidência ↗</a>}</div><div className="requirement-actions"><em>{r.met?'Concluído':r.status==='AWAITING_REVIEW'?'Aguardando avaliação':r.status==='IN_PROGRESS'?'Em andamento':r.status==='REJECTED'?'Rejeitada':'Pendente'}</em>{r.source==='QUALIFICATION'&&<button className={r.status==='AWAITING_REVIEW'?'evaluate-button review':'evaluate-button'} onClick={()=>openEvaluation(r)}>{r.status==='AWAITING_REVIEW'?'Revisar envio':'Avaliar'}</button>}</div></div>)}</div>
         {!dev.requirements.length&&<div className="empty-state compact"><b>Nenhum requisito pendente</b><span>{dev.careerComplete?'Este colaborador chegou ao último step.':'O próximo step não possui requisitos cadastrados.'}</span></div>}
       </article>
 
@@ -116,6 +116,7 @@ export default function Colaborador(){
 
     {evaluationOpen&&evaluationRequirement&&<div className="modal-backdrop"><div className="modal modal-lg">
       <div className="modal-head"><div><p className="eyebrow">AVALIAÇÃO DE QUALIFICAÇÃO</p><h2>{evaluationRequirement.name}</h2><p>Atualize o andamento, registre evidências e deixe uma observação para o colaborador.</p></div><button className="modal-close" onClick={()=>setEvaluationOpen(false)}>×</button></div>
+      {evaluationRequirement.submittedAt&&<div className="submission-review-card"><div><span className="selector-title">ENVIO DO COLABORADOR</span><strong>Enviado em {new Date(evaluationRequirement.submittedAt).toLocaleDateString('pt-BR')}</strong>{evaluationRequirement.submissionNotes&&<p>{evaluationRequirement.submissionNotes}</p>}</div>{evaluationRequirement.evidenceUrl&&<a href={evaluationRequirement.evidenceUrl} target="_blank" rel="noreferrer">Abrir evidência ↗</a>}</div>}
       <div className="evaluation-status-grid">
         {[
           ['PENDING','Pendente','Ainda não iniciado'],
