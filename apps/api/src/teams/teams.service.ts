@@ -1,4 +1,5 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { SystemRole } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service';
 import { CreateTeamDto } from './dto/create-team.dto';
 
@@ -6,8 +7,20 @@ import { CreateTeamDto } from './dto/create-team.dto';
 export class TeamsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll() {
+  async findAll(actor: { sub: string; systemRole: SystemRole }) {
+    let teamId: string | undefined;
+
+    if (actor.systemRole === SystemRole.MANAGER) {
+      const manager = await this.prisma.user.findUnique({
+        where: { id: actor.sub },
+        select: { teamId: true, active: true },
+      });
+      if (!manager?.active) throw new NotFoundException('Gerente não encontrado ou inativo');
+      teamId = manager.teamId;
+    }
+
     return this.prisma.team.findMany({
+      where: teamId ? { id: teamId } : undefined,
       include: { _count: { select: { users: true, roles: true } } },
       orderBy: { name: 'asc' },
     });
