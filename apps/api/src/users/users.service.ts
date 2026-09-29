@@ -114,6 +114,20 @@ export class UsersService {
       if (role.teamId !== effectiveTeamId) throw new BadRequestException('O cargo deve pertencer ao time selecionado');
     }
 
+    if (effectiveManagerId) {
+      const selectedManager = await this.prisma.user.findUnique({
+        where: { id: effectiveManagerId },
+        select: { id: true, teamId: true, systemRole: true, active: true },
+      });
+      if (!selectedManager?.active) throw new BadRequestException('Gestor selecionado não está disponível');
+      if (selectedManager.teamId !== effectiveTeamId) {
+        throw new BadRequestException('O gestor deve pertencer ao mesmo time do colaborador');
+      }
+      if (selectedManager.systemRole !== SystemRole.MANAGER && selectedManager.systemRole !== SystemRole.ADMIN) {
+        throw new BadRequestException('O gestor selecionado precisa ter perfil de gerente ou administrador');
+      }
+    }
+
     const passwordHash = await argon2.hash(dto.password);
     const startedAt = dto.currentRoleStepStartedAt
       ? new Date(dto.currentRoleStepStartedAt)
