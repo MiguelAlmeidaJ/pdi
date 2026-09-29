@@ -2,6 +2,11 @@ import { Type } from 'class-transformer';
 import { ArrayMinSize, IsArray, IsEnum, IsInt, IsNumber, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
 import { StepCode } from '@prisma/client';
 
+export class CreateRoleStepRequirementDto {
+  @IsString() qualificationId!: string;
+  @IsOptional() @IsString() notes?: string;
+}
+
 export class CreateRoleStepDto {
   @IsEnum(StepCode) code!: StepCode;
   @IsString() label!: string;
@@ -9,6 +14,12 @@ export class CreateRoleStepDto {
   @IsNumber({ maxDecimalPlaces: 2 }) @Min(0) salary!: number;
   @IsInt() @Min(0) @IsOptional() minTenureMonths?: number;
   @IsInt() @Min(0) @IsOptional() minExperienceMonths?: number;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateRoleStepRequirementDto)
+  @IsOptional()
+  requirements?: CreateRoleStepRequirementDto[];
 }
 
 export class CreateRoleDto {
