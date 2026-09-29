@@ -2339,3 +2339,14 @@ body{
     padding:16px 12px 30px;
   }
 }
+
+
+/* ===== Compact application header ===== */
+.app-header-inner{
+  min-height:86px;
+  padding-top:18px;
+  padding-bottom:17px;
+}
+.app-header-copy h1{
+  margin-top:0;
+}
