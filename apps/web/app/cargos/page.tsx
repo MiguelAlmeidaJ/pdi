@@ -71,6 +71,13 @@ type StepScalarKey=Exclude<keyof StepForm,'qualificationIds'>;
     catch(e){setError(e instanceof Error?e.message:'Erro ao carregar qualificações do time')}
   }
 
+  function openCreateRole(){
+    setOpen(true);
+    if(sessionUser?.systemRole==='MANAGER'&&teams[0]){
+      void changeCreateTeam(teams[0].id);
+    }
+  }
+
   async function create(){
     setSaving(true);setError('');
     try{
@@ -182,7 +189,7 @@ type StepScalarKey=Exclude<keyof StepForm,'qualificationIds'>;
     roles:visibleRoles.filter(role=>role.team.id===team.id),
   })).filter(group=>group.roles.length>0),[teams,visibleRoles]);
 
-  return <AppLayout title="Cargos e steps" description="Configure trilhas de carreira e as qualificações exigidas em cada etapa." action={sessionUser?.systemRole==='ADMIN'?<button className="primary-action action-with-icon" onClick={()=>setOpen(true)}><FiPlus/> Novo cargo</button>:undefined}>
+  return <AppLayout title="Cargos e steps" description="Configure trilhas de carreira e as qualificações exigidas em cada etapa." action={sessionUser&&(sessionUser.systemRole==='ADMIN'||sessionUser.systemRole==='MANAGER')?<button className="primary-action action-with-icon" onClick={openCreateRole}><FiPlus/> Novo cargo</button>:undefined}>
     {error&&<div className="form-error">{error}</div>}
 
     <section className="roles-toolbar">
@@ -217,7 +224,7 @@ type StepScalarKey=Exclude<keyof StepForm,'qualificationIds'>;
         </header>
 
         <div className="roles-list">{group.roles.map(r=><article className="role-card" key={r.id}>
-      <div className="role-title"><div><p className="eyebrow">{r.team.name}</p><h2>{r.name}</h2><span>{r.description||r._count.users+' colaborador(es)'}</span></div>{sessionUser?.systemRole==='ADMIN'&&<div className="role-card-actions"><button className="secondary-button action-with-icon" onClick={()=>openEditRole(r)}><FiEdit3/> Editar cargo</button><button className="secondary-button" onClick={()=>openRequirements(r)}>Configurar qualificações</button></div>}</div>
+      <div className="role-title"><div><p className="eyebrow">{r.team.name}</p><h2>{r.name}</h2><span>{r.description||r._count.users+' colaborador(es)'}</span></div>{sessionUser&&(sessionUser.systemRole==='ADMIN'||sessionUser.systemRole==='MANAGER')&&<div className="role-card-actions"><button className="secondary-button action-with-icon" onClick={()=>openEditRole(r)}><FiEdit3/> Editar cargo</button><button className="secondary-button" onClick={()=>openRequirements(r)}>Configurar qualificações</button></div>}</div>
       <div className="role-summary"><span>{r.steps.length} step(s)</span><span>{r.steps.reduce((sum,s)=>sum+s.requirements.length,0)} requisito(s) configurado(s)</span><span>{r._count.users} colaborador(es)</span></div>
       <div className="step-cards">{r.steps.map((s,i)=>{
         const expanded=expandedStepId===s.id;
@@ -230,7 +237,7 @@ type StepScalarKey=Exclude<keyof StepForm,'qualificationIds'>;
             <div className={'step-card-chevron '+(expanded?'expanded':'')}><FiChevronDown/></div>
           </button>
           {expanded&&<div className="step-card-details">
-            <div className="step-detail-head"><div><p className="eyebrow">QUALIFICAÇÕES REQUERIDAS</p><h3>{s.label}</h3></div>{sessionUser?.systemRole==='ADMIN'&&<button className="text-button" onClick={()=>openRequirements(r)}>Editar requisitos →</button>}</div>
+            <div className="step-detail-head"><div><p className="eyebrow">QUALIFICAÇÕES REQUERIDAS</p><h3>{s.label}</h3></div>{sessionUser&&(sessionUser.systemRole==='ADMIN'||sessionUser.systemRole==='MANAGER')&&<button className="text-button" onClick={()=>openRequirements(r)}>Editar requisitos →</button>}</div>
             {s.requirements.length?<div className="requirement-tags">{s.requirements.map(req=><div className="requirement-tag" key={req.qualificationId}><span className="requirement-tag-icon">✓</span><div><strong>{req.qualification.name}</strong><small>{typeLabel[req.qualification.type]||req.qualification.type}</small></div></div>)}</div>:<div className="empty-step-requirements"><span>○</span><div><strong>Nenhuma qualificação vinculada</strong><small>Configure o que é necessário para concluir este step.</small></div></div>}
           </div>}
         </div>
@@ -271,7 +278,7 @@ type StepScalarKey=Exclude<keyof StepForm,'qualificationIds'>;
       <div className="modal-head"><div><p className="eyebrow">CARREIRA</p><h2>Novo cargo</h2><p>Configure o cargo e a trilha salarial por steps.</p></div><button className="modal-close" onClick={()=>setOpen(false)} aria-label="Fechar"><FiX/></button></div>
       <div className="form-grid two">
         <label>Nome do cargo<input value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Ex.: Estagiário"/></label>
-        <label>Time<select value={form.teamId} onChange={e=>changeCreateTeam(e.target.value)}><option value="">Selecione...</option>{teams.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></label>
+        <label>Time<select value={form.teamId} onChange={e=>changeCreateTeam(e.target.value)} disabled={sessionUser?.systemRole==='MANAGER'}><option value="">Selecione...</option>{teams.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select>{sessionUser?.systemRole==='MANAGER'&&<small className="field-help">O cargo será criado no seu time.</small>}</label>
         <label className="span-2">Descrição<textarea value={form.description} onChange={e=>setForm({...form,description:e.target.value})} placeholder="Responsabilidades e objetivo do cargo"/></label>
       </div>
       <div className="steps-editor-head"><div><p className="eyebrow">STEPS</p><h3>Progressão do cargo</h3></div><button className="secondary-button" onClick={addStep} disabled={steps.length===5}>+ Adicionar step</button></div>
