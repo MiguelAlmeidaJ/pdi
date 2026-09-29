@@ -51,8 +51,20 @@ export default function MeuPdi(){
 
   const initials=profile.name.split(' ').slice(0,2).map(p=>p[0]).join('').toUpperCase();
   const missing=Math.max(0,dev.progress.required-dev.progress.completed);
+  const recentEvaluations=dev.requirements
+    .filter(r=>r.source==='QUALIFICATION'&&r.evaluatedAt&&(r.status==='COMPLETED'||r.status==='REJECTED'||r.status==='IN_PROGRESS'))
+    .sort((a,b)=>new Date(b.evaluatedAt||0).getTime()-new Date(a.evaluatedAt||0).getTime())
+    .slice(0,3);
 
   return <AppLayout title="Meu desenvolvimento" description="Veja onde você está, o que falta e qual é o próximo passo da sua carreira.">
+    {recentEvaluations.length>0&&<section className="employee-notifications">
+      <div className="employee-notifications-head"><div><p className="eyebrow">ATUALIZAÇÕES RECENTES</p><h2>Seu gestor avaliou seu desenvolvimento</h2></div><span>{recentEvaluations.length} atualização(ões)</span></div>
+      <div className="employee-notification-list">{recentEvaluations.map(item=><article className={'employee-notification '+(item.status==='COMPLETED'?'approved':item.status==='REJECTED'?'rejected':'progress')} key={item.key}>
+        <div className="employee-notification-icon">{item.status==='COMPLETED'?'✓':item.status==='REJECTED'?'!':'↗'}</div>
+        <div><strong>{item.name}</strong><span>{item.status==='COMPLETED'?'Qualificação concluída':item.status==='REJECTED'?'Seu envio precisa de revisão':'Seu gestor marcou como em andamento'}</span>{item.notes&&<p>{item.notes}</p>}<small>{item.evaluator?.name?'Avaliado por '+item.evaluator.name+' · ':''}{item.evaluatedAt?new Date(item.evaluatedAt).toLocaleDateString('pt-BR'):''}</small></div>
+      </article>)}</div>
+    </section>}
+
     <section className="my-pdi-hero">
       <div className="avatar xl">{initials}</div>
       <div className="profile-main">
