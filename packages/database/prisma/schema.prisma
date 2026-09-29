@@ -65,6 +65,7 @@ model User {
   teamId String
   roleId String?
   currentRoleStepId String?
+  currentRoleStepStartedAt DateTime?
   managerId String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -108,6 +109,7 @@ model RoleStep {
   salary Decimal @db.Decimal(12, 2)
   minTenureMonths Int?
   minExperienceMonths Int?
+  minMonthsInCurrentStep Int?
   active Boolean @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
