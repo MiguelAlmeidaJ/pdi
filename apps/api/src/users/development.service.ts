@@ -18,7 +18,7 @@ export class DevelopmentService {
       include: {
         role: true,
         currentRoleStep: true,
-        qualifications: { include: { qualification: true } },
+        qualifications: { include: { qualification: true, evaluator: { select: { id: true, name: true } } } },
       },
     });
 
@@ -115,6 +115,8 @@ export class DevelopmentService {
         status: userQualification?.status ?? QualificationStatus.PENDING,
         evidenceUrl: userQualification?.evidenceUrl ?? null,
         completedAt: userQualification?.completedAt ?? null,
+        evaluatedAt: userQualification?.evaluatedAt ?? null,
+        evaluator: userQualification?.evaluator ?? null,
         met: userQualification?.status === QualificationStatus.COMPLETED,
       });
     }
