@@ -1,13 +1,14 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import * as argon2 from 'argon2';
-import { SystemRole } from '@prisma/client';
+import { NotificationType, SystemRole } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ChangeCareerStepDto } from './dto/change-career-step.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private readonly notifications: NotificationsService) {}
 
   async findAll(actor: { sub: string; systemRole: SystemRole }) {
     const teamId = actor.systemRole === SystemRole.MANAGER ? await this.getActorTeamId(actor.sub) : undefined;
@@ -162,7 +163,7 @@ export class UsersService {
     const effectiveAt = dto.effectiveAt ? new Date(dto.effectiveAt) : new Date();
     const reason = dto.reason.trim();
 
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       await tx.careerHistory.updateMany({
         where: { userId, endedAt: null },
         data: { endedAt: effectiveAt },
@@ -205,6 +206,21 @@ export class UsersService {
         reason,
       };
     });
+
+    await this.notifications.create({
+      userId,
+      type: NotificationType.CAREER_STEP_CHANGED,
+      title: 'Sua etapa de carreira mudou',
+      message: 'Você agora está em ' + target.label,
+      href: '/meu-pdi',
+      metadata: {
+        targetRoleStepId: target.id,
+        changedBy: actor.sub,
+        reason,
+      },
+    });
+
+    return result;
   }
   async assertCanAccessUser(
     actor: { sub: string; systemRole: SystemRole },
