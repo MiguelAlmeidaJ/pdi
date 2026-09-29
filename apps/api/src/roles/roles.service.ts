@@ -1,16 +1,28 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { StepCode } from '@prisma/client';
+import { StepCode, SystemRole } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { SetStepRequirementsDto } from './dto/set-step-requirements.dto';
+import { UpdateRoleDto } from './dto/update-role.dto';
 
 @Injectable()
 export class RolesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll(teamId?: string) {
+  async findAll(actor: { sub: string; systemRole: SystemRole }, teamId?: string) {
+    let scopedTeamId = teamId;
+
+    if (actor.systemRole === SystemRole.MANAGER) {
+      const manager = await this.prisma.user.findUnique({
+        where: { id: actor.sub },
+        select: { teamId: true, active: true },
+      });
+      if (!manager?.active) throw new NotFoundException('Gerente não encontrado ou inativo');
+      scopedTeamId = manager.teamId;
+    }
+
     return this.prisma.role.findMany({
-      where: teamId ? { teamId } : undefined,
+      where: scopedTeamId ? { teamId: scopedTeamId } : undefined,
       include: {
         team: true,
         steps: {
@@ -97,6 +109,83 @@ export class RolesService {
             },
           },
         },
+      },
+    });
+  }
+
+  async update(id: string, dto: UpdateRoleDto) {
+    const role = await this.prisma.role.findUnique({
+      where: { id },
+      include: { steps: true },
+    });
+    if (!role) throw new NotFoundException('Cargo não encontrado');
+
+    const name = dto.name.trim();
+    const duplicate = await this.prisma.role.findFirst({
+      where: {
+        teamId: role.teamId,
+        name,
+        NOT: { id },
+      },
+      select: { id: true },
+    });
+    if (duplicate) throw new ConflictException('Já existe outro cargo com este nome no time');
+
+    const existingIds = new Set(role.steps.map((step) => step.id));
+    const incomingIds = dto.steps.map((step) => step.id);
+    if (new Set(incomingIds).size !== incomingIds.length) {
+      throw new BadRequestException('Steps não podem se repetir');
+    }
+    if (incomingIds.some((stepId) => !existingIds.has(stepId))) {
+      throw new BadRequestException('Um ou mais steps não pertencem a este cargo');
+    }
+    if (incomingIds.length !== role.steps.length) {
+      throw new BadRequestException('A edição atual não permite adicionar ou remover steps; altere apenas os dados dos steps existentes');
+    }
+
+    const orders = dto.steps.map((step) => step.order);
+    if (new Set(orders).size !== orders.length) {
+      throw new BadRequestException('Steps não podem repetir ordem');
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.role.update({
+        where: { id },
+        data: {
+          name,
+          description: dto.description?.trim() || null,
+        },
+      }),
+      ...dto.steps.map((step) =>
+        this.prisma.roleStep.update({
+          where: { id: step.id },
+          data: {
+            label: step.label.trim(),
+            order: step.order,
+            salary: step.salary.toString(),
+            minTenureMonths: step.minTenureMonths,
+            minExperienceMonths: step.minExperienceMonths,
+            minMonthsInCurrentStep: step.minMonthsInCurrentStep,
+          },
+        }),
+      ),
+    ]);
+
+    return this.prisma.role.findUnique({
+      where: { id },
+      include: {
+        team: true,
+        steps: {
+          orderBy: { order: 'asc' },
+          include: {
+            requirements: {
+              where: { required: true },
+              include: { qualification: true },
+              orderBy: { qualification: { name: 'asc' } },
+            },
+          },
+        },
+        _count: { select: { users: true } },
       },
     });
   }
