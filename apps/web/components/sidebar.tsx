@@ -100,9 +100,15 @@ export function Sidebar(){
 
     <div className="sidebar-bottom" ref={profileAreaRef}>
       <div className={'profile-menu '+(profileOpen?'open':'')}>
+        <div className="profile-menu-head">
+          <div className="profile-menu-avatar">{initials||<FiUser/>}</div>
+          <div><strong>{user?.name||'Usuário'}</strong><span>{user?.systemRole==='ADMIN'?'Administrador':user?.systemRole==='MANAGER'?'Gerente':'Colaborador'}</span></div>
+        </div>
+        <div className="profile-menu-divider"/>
         <Link href="/perfil" onClick={()=>setProfileOpen(false)}><FiUser/><span>Meu perfil</span></Link>
         <Link href="/perfil?security=1" onClick={()=>setProfileOpen(false)}><FiKey/><span>Alterar senha</span></Link>
-        <button onClick={logout}><FiLogOut/><span>Sair do sistema</span></button>
+        <div className="profile-menu-divider"/>
+        <button className="profile-menu-logout" onClick={logout}><FiLogOut/><span>Sair do sistema</span></button>
       </div>
 
       <button className="profile profile-button" onClick={()=>setProfileOpen(open=>!open)} aria-expanded={profileOpen} data-tooltip="Minha conta" aria-label="Minha conta">
