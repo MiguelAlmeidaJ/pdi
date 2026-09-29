@@ -5,6 +5,7 @@ import { useSessionUser } from '../lib/use-session';
 const managementItems=[
   ['Visão geral','⌂','/'],
   ['Colaboradores','◎','/colaboradores'],
+  ['Avaliações','✓','/avaliacoes'],
   ['Times','♙','/times'],
   ['Cargos e steps','▣','/cargos'],
   ['Qualificações','◇','/qualificacoes'],
