@@ -9,12 +9,14 @@ import { FiPlus,FiSearch,FiX } from 'react-icons/fi';
 type Team={id:string;name:string};
 type Role={id:string;name:string;team:{id:string;name:string};steps:{id:string;code:string;label:string;salary:string;order:number}[]};
 type User={id:string;name:string;email:string;systemRole:string;active:boolean;hiredAt:string;team?:Team|null;role?:{id:string;name:string}|null;currentRoleStep?:{id:string;code:string;label:string;salary:string;order:number}|null};
+type SelfProfile={id:string;name:string;systemRole:string;team?:Team|null};
 
 export default function Colaboradores(){
   const sessionUser=useSessionUser();
   const [data,setData]=useState<User[]>([]);
   const [teams,setTeams]=useState<Team[]>([]);
   const [roles,setRoles]=useState<Role[]>([]);
+  const [self,setSelf]=useState<SelfProfile|null>(null);
   const [query,setQuery]=useState('');
   const [error,setError]=useState('');
   const [open,setOpen]=useState(false);
@@ -23,8 +25,13 @@ export default function Colaboradores(){
 
   async function load(){
     try{
-      const [users,teamList,roleList]=await Promise.all([api<User[]>('/users'),api<Team[]>('/teams'),api<Role[]>('/roles')]);
-      setData(users);setTeams(teamList);setRoles(roleList);setError('');
+      const [users,teamList,roleList,myProfile]=await Promise.all([
+        api<User[]>('/users'),
+        api<Team[]>('/teams'),
+        api<Role[]>('/roles'),
+        api<SelfProfile>('/users/me')
+      ]);
+      setData(users);setTeams(teamList);setRoles(roleList);setSelf(myProfile);setError('');
     }catch(e){setError(e instanceof Error?e.message:'Erro ao carregar dados')}
   }
   useEffect(()=>{load()},[]);
@@ -36,6 +43,16 @@ export default function Colaboradores(){
 
   function change(name:string,value:string){
     setForm(prev=>({...prev,[name]:value,...(name==='teamId'?{roleId:'',currentRoleStepId:''}:{}),...(name==='roleId'?{currentRoleStepId:''}:{})}));
+  }
+
+  function openCreate(){
+    const managerTeamId=sessionUser?.systemRole==='MANAGER'?self?.team?.id||'':'';
+    setForm({
+      name:'',email:'',password:'',systemRole:'USER',hiredAt:'',professionalSince:'',
+      teamId:managerTeamId,roleId:'',currentRoleStepId:'',currentRoleStepStartedAt:'',
+      managerId:sessionUser?.systemRole==='MANAGER'?(sessionUser.id||''):''
+    });
+    setOpen(true);
   }
 
   async function create(){
@@ -53,7 +70,7 @@ export default function Colaboradores(){
     finally{setSaving(false)}
   }
 
-  return <AppLayout title="Colaboradores" description="Acompanhe posição atual, carreira e desenvolvimento individual." action={sessionUser?.systemRole==='ADMIN'?<button className="primary-action action-with-icon" onClick={()=>setOpen(true)}><FiPlus/> Novo colaborador</button>:undefined}>
+  return <AppLayout title="Colaboradores" description="Acompanhe posição atual, carreira e desenvolvimento individual." action={sessionUser&&(sessionUser.systemRole==='ADMIN'||sessionUser.systemRole==='MANAGER')?<button className="primary-action action-with-icon" onClick={openCreate}><FiPlus/> Novo colaborador</button>:undefined}>
     {error&&<div className="form-error">{error}</div>}
     {sessionUser?.systemRole==='MANAGER'&&<div className="scope-banner"><strong>Visão do gerente</strong><span>Você está vendo somente os colaboradores do seu time.</span></div>}
     <section className="people-toolbar"><div><strong>{data.length}</strong><span> colaboradores cadastrados</span></div><label className="search-field"><FiSearch/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar por nome, cargo ou time..."/></label></section>
@@ -77,10 +94,10 @@ export default function Colaboradores(){
         <label>Nome<input value={form.name} onChange={e=>change('name',e.target.value)} placeholder="Nome completo"/></label>
         <label>E-mail<input type="email" value={form.email} onChange={e=>change('email',e.target.value)} placeholder="nome@empresa.com"/></label>
         <label>Senha inicial<input type="password" value={form.password} onChange={e=>change('password',e.target.value)} placeholder="Mínimo 8 caracteres"/></label>
-        <label>Perfil<select value={form.systemRole} onChange={e=>change('systemRole',e.target.value)}><option value="USER">Colaborador</option><option value="MANAGER">Gerente</option><option value="ADMIN">Administrador</option></select></label>
+        <label>Perfil<select value={form.systemRole} onChange={e=>change('systemRole',e.target.value)} disabled={sessionUser?.systemRole==='MANAGER'}><option value="USER">Colaborador</option>{sessionUser?.systemRole==='ADMIN'&&<><option value="MANAGER">Gerente</option><option value="ADMIN">Administrador</option></>}</select>{sessionUser?.systemRole==='MANAGER'&&<small className="field-help">Gerentes podem cadastrar apenas colaboradores.</small>}</label>
         <label>Data de admissão<input type="date" value={form.hiredAt} onChange={e=>change('hiredAt',e.target.value)}/></label>
         <label>Experiência profissional desde<input type="date" value={form.professionalSince} onChange={e=>change('professionalSince',e.target.value)}/></label>
-        <label>Time<select value={form.teamId} onChange={e=>change('teamId',e.target.value)}><option value="">Selecione...</option>{teams.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></label>
+        <label>Time<select value={form.teamId} onChange={e=>change('teamId',e.target.value)} disabled={sessionUser?.systemRole==='MANAGER'}><option value="">Selecione...</option>{(sessionUser?.systemRole==='MANAGER'?teams.filter(t=>t.id===self?.team?.id):teams).map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select>{sessionUser?.systemRole==='MANAGER'&&<small className="field-help">O colaborador será criado no seu time.</small>}</label>
         <label>Cargo<select value={form.roleId} onChange={e=>change('roleId',e.target.value)} disabled={!form.teamId}><option value="">Sem cargo</option>{availableRoles.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></label>
         <label>Step atual<select value={form.currentRoleStepId} onChange={e=>change('currentRoleStepId',e.target.value)} disabled={!selectedRole}><option value="">Sem step</option>{selectedRole?.steps.map(s=><option key={s.id} value={s.id}>{s.label} · R$ {Number(s.salary).toLocaleString('pt-BR',{minimumFractionDigits:2})}</option>)}</select></label><label>Está neste nível desde<input type="date" value={form.currentRoleStepStartedAt} onChange={e=>change('currentRoleStepStartedAt',e.target.value)} disabled={!form.currentRoleStepId}/><small className="field-help">Use a data real em que entrou neste nível. Se vazio, usaremos a admissão.</small></label>
         <label>Gestor<select value={form.managerId} onChange={e=>change('managerId',e.target.value)}><option value="">Não definido</option>{managers.map(m=><option key={m.id} value={m.id}>{m.name}</option>)}</select></label>
