@@ -3,12 +3,12 @@ import { useEffect,useMemo,useState } from 'react';
 import { AppLayout } from '../../components/app-layout';
 import { api } from '../../lib/api';
 import { useSessionUser } from '../../lib/use-session';
-import { FiBriefcase,FiChevronDown,FiPlus,FiSearch,FiUsers,FiX } from 'react-icons/fi';
+import { FiBriefcase,FiChevronDown,FiEdit3,FiPlus,FiSearch,FiUsers,FiX } from 'react-icons/fi';
 
 type Team={id:string;name:string};
 type Qualification={id:string;name:string;type:string;description?:string;team?:Team|null};
 type StepForm={code:string;label:string;order:number;salary:string;minTenureMonths:string;minExperienceMonths:string;minMonthsInCurrentStep:string;qualificationIds:string[]};
-type RoleStep={id:string;code:string;label:string;salary:string;order:number;requirements:{qualificationId:string;required:boolean;qualification:Qualification}[]};
+type RoleStep={id:string;code:string;label:string;salary:string;order:number;minTenureMonths?:number|null;minExperienceMonths?:number|null;minMonthsInCurrentStep?:number|null;requirements:{qualificationId:string;required:boolean;qualification:Qualification}[]};
 type Role={id:string;name:string;description?:string;team:{id:string;name:string};steps:RoleStep[];_count:{users:number}};
 type StepRequirementResponse={id:string;requirements:{qualificationId:string;required:boolean;notes?:string;qualification:Qualification}[]};
 
@@ -35,6 +35,11 @@ export default function Cargos(){
   const [savingRequirements,setSavingRequirements]=useState(false);
   const [qualificationQuery,setQualificationQuery]=useState('');
   const [expandedStepId,setExpandedStepId]=useState('');
+  const [editRole,setEditRole]=useState<Role|null>(null);
+  const [editName,setEditName]=useState('');
+  const [editDescription,setEditDescription]=useState('');
+  const [editSteps,setEditSteps]=useState<Array<{id:string;label:string;order:number;salary:string;minTenureMonths:string;minExperienceMonths:string;minMonthsInCurrentStep:string}>>([]);
+  const [savingEdit,setSavingEdit]=useState(false);
   const [teamFilter,setTeamFilter]=useState('');
   const [roleQuery,setRoleQuery]=useState('');
 
@@ -78,6 +83,51 @@ type StepScalarKey=Exclude<keyof StepForm,'qualificationIds'>;
       await load();
     }catch(e){setError(e instanceof Error?e.message:'Erro ao criar cargo')}
     finally{setSaving(false)}
+  }
+
+  function openEditRole(role:Role){
+    setEditRole(role);
+    setEditName(role.name);
+    setEditDescription(role.description||'');
+    setEditSteps(role.steps.map(step=>({
+      id:step.id,
+      label:step.label,
+      order:step.order,
+      salary:String(step.salary),
+      minTenureMonths:step.minTenureMonths==null?'':String(step.minTenureMonths),
+      minExperienceMonths:step.minExperienceMonths==null?'':String(step.minExperienceMonths),
+      minMonthsInCurrentStep:step.minMonthsInCurrentStep==null?'':String(step.minMonthsInCurrentStep),
+    })));
+  }
+
+  function updateEditStep(index:number,key:'label'|'salary'|'minTenureMonths'|'minExperienceMonths'|'minMonthsInCurrentStep',value:string){
+    setEditSteps(current=>current.map((step,i)=>i===index?{...step,[key]:value}:step));
+  }
+
+  async function saveRoleEdit(){
+    if(!editRole)return;
+    setSavingEdit(true);setError('');
+    try{
+      await api('/roles/'+editRole.id,{
+        method:'PUT',
+        body:JSON.stringify({
+          name:editName,
+          description:editDescription||undefined,
+          steps:editSteps.map(step=>({
+            id:step.id,
+            label:step.label,
+            order:step.order,
+            salary:Number(step.salary),
+            minTenureMonths:step.minTenureMonths===''?undefined:Number(step.minTenureMonths),
+            minExperienceMonths:step.minExperienceMonths===''?undefined:Number(step.minExperienceMonths),
+            minMonthsInCurrentStep:step.minMonthsInCurrentStep===''?undefined:Number(step.minMonthsInCurrentStep),
+          }))
+        })
+      });
+      setEditRole(null);
+      await load();
+    }catch(e){setError(e instanceof Error?e.message:'Erro ao editar cargo')}
+    finally{setSavingEdit(false)}
   }
 
   async function openRequirements(role:Role){
@@ -167,7 +217,7 @@ type StepScalarKey=Exclude<keyof StepForm,'qualificationIds'>;
         </header>
 
         <div className="roles-list">{group.roles.map(r=><article className="role-card" key={r.id}>
-      <div className="role-title"><div><p className="eyebrow">{r.team.name}</p><h2>{r.name}</h2><span>{r.description||r._count.users+' colaborador(es)'}</span></div>{sessionUser?.systemRole==='ADMIN'&&<button className="secondary-button" onClick={()=>openRequirements(r)}>Configurar qualificações</button>}</div>
+      <div className="role-title"><div><p className="eyebrow">{r.team.name}</p><h2>{r.name}</h2><span>{r.description||r._count.users+' colaborador(es)'}</span></div>{sessionUser?.systemRole==='ADMIN'&&<div className="role-card-actions"><button className="secondary-button action-with-icon" onClick={()=>openEditRole(r)}><FiEdit3/> Editar cargo</button><button className="secondary-button" onClick={()=>openRequirements(r)}>Configurar qualificações</button></div>}</div>
       <div className="role-summary"><span>{r.steps.length} step(s)</span><span>{r.steps.reduce((sum,s)=>sum+s.requirements.length,0)} requisito(s) configurado(s)</span><span>{r._count.users} colaborador(es)</span></div>
       <div className="step-cards">{r.steps.map((s,i)=>{
         const expanded=expandedStepId===s.id;
@@ -190,6 +240,32 @@ type StepScalarKey=Exclude<keyof StepForm,'qualificationIds'>;
     </section>
 
     {!groupedRoles.length&&!error&&<div className="empty-state modern"><div className="empty-icon"><FiBriefcase/></div><b>Nenhum cargo encontrado</b><span>{data.length?'Ajuste o time selecionado ou o termo da busca.':'Crie cargos e seus steps para visualizar as trilhas de carreira.'}</span></div>}
+
+    {editRole&&<div className="modal-backdrop"><div className="modal modal-xl">
+      <div className="modal-head"><div><p className="eyebrow">{editRole.team.name}</p><h2>Editar cargo</h2><p>Atualize o cargo e os dados dos steps existentes. Qualificações continuam sendo configuradas separadamente.</p></div><button className="modal-close" onClick={()=>setEditRole(null)} aria-label="Fechar"><FiX/></button></div>
+      <div className="form-grid two">
+        <label>Nome do cargo<input value={editName} onChange={e=>setEditName(e.target.value)}/></label>
+        <label>Time<input value={editRole.team.name} disabled/></label>
+        <label className="span-2">Descrição<textarea value={editDescription} onChange={e=>setEditDescription(e.target.value)} placeholder="Responsabilidades e objetivo do cargo"/></label>
+      </div>
+
+      <div className="edit-role-steps-head"><div><p className="eyebrow">STEPS</p><h3>Faixa e critérios da trilha</h3></div><span>{editSteps.length} step(s)</span></div>
+      <div className="edit-role-steps">
+        {editSteps.map((step,index)=><div className="edit-role-step" key={step.id}>
+          <div className="edit-role-step-number">{index+1}</div>
+          <div className="edit-role-step-fields">
+            <label>Nome do step<input value={step.label} onChange={e=>updateEditStep(index,'label',e.target.value)}/></label>
+            <label>Salário<input type="number" min="0" step="0.01" value={step.salary} onChange={e=>updateEditStep(index,'salary',e.target.value)}/></label>
+            <label>Tempo empresa<input type="number" min="0" value={step.minTenureMonths} onChange={e=>updateEditStep(index,'minTenureMonths',e.target.value)}/><small>meses</small></label>
+            <label>Experiência<input type="number" min="0" value={step.minExperienceMonths} onChange={e=>updateEditStep(index,'minExperienceMonths',e.target.value)}/><small>meses</small></label>
+            <label>Tempo no nível anterior<input type="number" min="0" value={step.minMonthsInCurrentStep} onChange={e=>updateEditStep(index,'minMonthsInCurrentStep',e.target.value)}/><small>meses</small></label>
+          </div>
+        </div>)}
+      </div>
+
+      <div className="edit-role-note">Para preservar históricos e colaboradores vinculados, esta edição altera os steps existentes sem removê-los.</div>
+      <div className="modal-actions"><button className="secondary-button" onClick={()=>setEditRole(null)}>Cancelar</button><button className="primary-action" disabled={savingEdit||!editName.trim()||editSteps.some(step=>!step.label.trim()||!step.salary)} onClick={saveRoleEdit}>{savingEdit?'Salvando...':'Salvar alterações'}</button></div>
+    </div></div>}
 
     {open&&<div className="modal-backdrop"><div className="modal modal-xl">
       <div className="modal-head"><div><p className="eyebrow">CARREIRA</p><h2>Novo cargo</h2><p>Configure o cargo e a trilha salarial por steps.</p></div><button className="modal-close" onClick={()=>setOpen(false)} aria-label="Fechar"><FiX/></button></div>
