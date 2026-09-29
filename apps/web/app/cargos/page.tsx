@@ -68,7 +68,7 @@ export default function Cargos(){
         steps:steps.map((s,i)=>({code:s.code,label:s.label,order:i,salary:Number(s.salary),minTenureMonths:s.minTenureMonths===''?undefined:Number(s.minTenureMonths),minExperienceMonths:s.minExperienceMonths===''?undefined:Number(s.minExperienceMonths),minMonthsInCurrentStep:s.minMonthsInCurrentStep===''?undefined:Number(s.minMonthsInCurrentStep),requirements:s.qualificationIds.map(qualificationId=>({qualificationId}))}))
       })});
       setOpen(false);setForm({name:'',description:'',teamId:''});
-      setSteps([{code:'BASE',label:'Base',order:0,salary:'',minTenureMonths:'0',minExperienceMonths:'0',qualificationIds:[]}]);setCreateQualifications([]);setCreateQualificationQuery('');
+      setSteps([{code:'BASE',label:'Base',order:0,salary:'',minTenureMonths:'0',minExperienceMonths:'0',minMonthsInCurrentStep:'0',qualificationIds:[]}]);setCreateQualifications([]);setCreateQualificationQuery('');
       await load();
     }catch(e){setError(e instanceof Error?e.message:'Erro ao criar cargo')}
     finally{setSaving(false)}
