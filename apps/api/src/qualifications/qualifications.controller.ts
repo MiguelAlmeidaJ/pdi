@@ -30,7 +30,13 @@ export class QualificationsController {
     return this.service.create(dto, request.user);
   }
 
-  @Roles(SystemRole.ADMIN)
+  @Roles(SystemRole.ADMIN, SystemRole.MANAGER)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateQualificationDto) { return this.service.update(id, dto); }
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateQualificationDto,
+    @Request() request: { user: { sub: string; systemRole: SystemRole } },
+  ) {
+    return this.service.update(id, dto, request.user);
+  }
 }
