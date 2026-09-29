@@ -45,7 +45,8 @@ export class RolesService {
     });
   }
 
-  async create(dto: CreateRoleDto) {
+  async create(dto: CreateRoleDto, actor: { sub: string; systemRole: SystemRole }) {
+    const effectiveTeamId = await this.resolveWritableTeam(actor, dto.teamId);
     if (!dto.steps.some((s) => s.code === StepCode.BASE)) throw new BadRequestException('Todo cargo deve possuir o step BASE');
     if (dto.steps.filter((s) => s.code === StepCode.BASE).length !== 1) throw new BadRequestException('O cargo deve possuir exatamente um step BASE');
 
@@ -53,8 +54,8 @@ export class RolesService {
     const orders = new Set(dto.steps.map((s) => s.order));
     if (codes.size !== dto.steps.length || orders.size !== dto.steps.length) throw new BadRequestException('Steps não podem repetir código ou ordem');
 
-    if (!(await this.prisma.team.findUnique({ where: { id: dto.teamId } }))) throw new NotFoundException('Time não encontrado');
-    if (await this.prisma.role.findUnique({ where: { teamId_name: { teamId: dto.teamId, name: dto.name.trim() } } })) throw new ConflictException('Cargo já cadastrado neste time');
+    if (!(await this.prisma.team.findUnique({ where: { id: effectiveTeamId } }))) throw new NotFoundException('Time não encontrado');
+    if (await this.prisma.role.findUnique({ where: { teamId_name: { teamId: effectiveTeamId, name: dto.name.trim() } } })) throw new ConflictException('Cargo já cadastrado neste time');
 
     const requirementIds = dto.steps.flatMap((step) => step.requirements?.map((item) => item.qualificationId) ?? []);
     if (new Set(requirementIds).size !== requirementIds.length) {
@@ -67,7 +68,7 @@ export class RolesService {
 
     if (requirementIds.length) {
       const validQualifications = await this.prisma.qualification.findMany({
-        where: { id: { in: [...new Set(requirementIds)] }, teamId: dto.teamId, active: true },
+        where: { id: { in: [...new Set(requirementIds)] }, teamId: effectiveTeamId, active: true },
         select: { id: true },
       });
       if (validQualifications.length !== new Set(requirementIds).size) {
@@ -79,7 +80,7 @@ export class RolesService {
       data: {
         name: dto.name.trim(),
         description: dto.description?.trim(),
-        teamId: dto.teamId,
+        teamId: effectiveTeamId,
         steps: {
           create: dto.steps.map((s) => ({
             code: s.code,
@@ -113,12 +114,17 @@ export class RolesService {
     });
   }
 
-  async update(id: string, dto: UpdateRoleDto) {
+  async update(
+    id: string,
+    dto: UpdateRoleDto,
+    actor: { sub: string; systemRole: SystemRole },
+  ) {
     const role = await this.prisma.role.findUnique({
       where: { id },
       include: { steps: true },
     });
     if (!role) throw new NotFoundException('Cargo não encontrado');
+    await this.assertCanManageTeam(actor, role.teamId);
 
     const name = dto.name.trim();
     const duplicate = await this.prisma.role.findFirst({
@@ -190,12 +196,17 @@ export class RolesService {
     });
   }
 
-  async setStepRequirements(stepId: string, dto: SetStepRequirementsDto) {
+  async setStepRequirements(
+    stepId: string,
+    dto: SetStepRequirementsDto,
+    actor: { sub: string; systemRole: SystemRole },
+  ) {
     const step = await this.prisma.roleStep.findUnique({
       where: { id: stepId },
       include: { role: { select: { teamId: true } } },
     });
     if (!step) throw new NotFoundException('Step não encontrado');
+    await this.assertCanManageTeam(actor, step.role.teamId);
 
     const ids = dto.requirements.map((item) => item.qualificationId);
     if (new Set(ids).size !== ids.length) throw new BadRequestException('Qualificações não podem se repetir');
@@ -233,10 +244,14 @@ export class RolesService {
     });
   }
 
-  async getStepRequirements(stepId: string) {
+  async getStepRequirements(
+    stepId: string,
+    actor: { sub: string; systemRole: SystemRole },
+  ) {
     const step = await this.prisma.roleStep.findUnique({
       where: { id: stepId },
       include: {
+        role: { select: { teamId: true } },
         requirements: {
           include: { qualification: true },
           orderBy: { qualification: { name: 'asc' } },
@@ -244,6 +259,40 @@ export class RolesService {
       },
     });
     if (!step) throw new NotFoundException('Step não encontrado');
+    await this.assertCanManageTeam(actor, step.role.teamId);
     return step;
+  }
+
+  private async resolveWritableTeam(
+    actor: { sub: string; systemRole: SystemRole },
+    requestedTeamId: string,
+  ) {
+    if (actor.systemRole === SystemRole.ADMIN) return requestedTeamId;
+
+    const manager = await this.prisma.user.findUnique({
+      where: { id: actor.sub },
+      select: { teamId: true, active: true },
+    });
+    if (!manager?.active) throw new NotFoundException('Gerente não encontrado ou inativo');
+    if (requestedTeamId !== manager.teamId) {
+      throw new BadRequestException('Gerentes só podem criar cargos no próprio time');
+    }
+    return manager.teamId;
+  }
+
+  private async assertCanManageTeam(
+    actor: { sub: string; systemRole: SystemRole },
+    teamId: string,
+  ) {
+    if (actor.systemRole === SystemRole.ADMIN) return;
+
+    const manager = await this.prisma.user.findUnique({
+      where: { id: actor.sub },
+      select: { teamId: true, active: true },
+    });
+    if (!manager?.active) throw new NotFoundException('Gerente não encontrado ou inativo');
+    if (manager.teamId !== teamId) {
+      throw new BadRequestException('Gerentes só podem alterar cargos do próprio time');
+    }
   }
 }
