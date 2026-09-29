@@ -1,21 +1,44 @@
 'use client';
+
 import { useEffect,useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { usePathname,useRouter } from 'next/navigation';
+import {
+  FiActivity,
+  FiAward,
+  FiBriefcase,
+  FiCheckCircle,
+  FiChevronDown,
+  FiGrid,
+  FiHome,
+  FiLogOut,
+  FiTrendingUp,
+  FiUser,
+  FiUsers,
+} from 'react-icons/fi';
+import type { IconType } from 'react-icons';
 import { useSessionUser } from '../lib/use-session';
 import { api } from '../lib/api';
 
-const managementItems=[
-  ['Visão geral','⌂','/'],
-  ['Colaboradores','◎','/colaboradores'],
-  ['Avaliações','✓','/avaliacoes'],
-  ['Times','♙','/times'],
-  ['Cargos e steps','▣','/cargos'],
-  ['Qualificações','◇','/qualificacoes'],
-  ['Promoções','↗','/promocoes'],
+type NavItem={
+  label:string;
+  href:string;
+  icon:IconType;
+  reviewBadge?:boolean;
+};
+
+const managementItems:NavItem[]=[
+  {label:'Visão geral',href:'/',icon:FiHome},
+  {label:'Colaboradores',href:'/colaboradores',icon:FiUsers},
+  {label:'Avaliações',href:'/avaliacoes',icon:FiCheckCircle,reviewBadge:true},
+  {label:'Times',href:'/times',icon:FiGrid},
+  {label:'Cargos e steps',href:'/cargos',icon:FiBriefcase},
+  {label:'Qualificações',href:'/qualificacoes',icon:FiAward},
+  {label:'Promoções',href:'/promocoes',icon:FiTrendingUp},
 ];
 
-const userItems=[
-  ['Meu desenvolvimento','◎','/meu-pdi'],
+const userItems:NavItem[]=[
+  {label:'Meu desenvolvimento',href:'/meu-pdi',icon:FiActivity},
 ];
 
 export function Sidebar(){
@@ -40,15 +63,39 @@ export function Sidebar(){
   }
 
   return <aside className="sidebar">
-    <div className="brand"><div className="brand-mark">P</div><div><strong>PDI</strong><span>Desenvolvimento</span></div></div>
-    <div className="sidebar-section-title">{user?.systemRole==='USER'?'MEU PDI':'WORKSPACE'}</div>
-    <nav>{items.map(([label,icon,href])=>{
-      const active=href==='/'?path==='/':path.startsWith(href);
-      const badge=href==='/avaliacoes'&&pendingReviews>0?pendingReviews:0;
-      return <a className={'nav-item '+(active?'active':'')} href={href} key={label}><i>{icon}</i><span>{label}</span>{badge>0&&<em className="nav-badge">{badge>99?'99+':badge}</em>}{active&&<b className="active-indicator"/>}</a>
-    })}</nav>
+    <div className="brand">
+      <div className="brand-mark">P</div>
+      <div><strong>PDI</strong><span>People Development</span></div>
+    </div>
+
+    <div className="sidebar-section-title">{user?.systemRole==='USER'?'DESENVOLVIMENTO':'GESTÃO'}</div>
+
+    <nav className="sidebar-nav">
+      {items.map(item=>{
+        const active=item.href==='/'?path==='/':path.startsWith(item.href);
+        const Icon=item.icon;
+        const badge=item.reviewBadge&&pendingReviews>0?pendingReviews:0;
+        return <Link className={'nav-item '+(active?'active':'')} href={item.href} key={item.href}>
+          <span className="nav-icon"><Icon/></span>
+          <span className="nav-text">{item.label}</span>
+          {badge>0&&<em className="nav-badge">{badge>99?'99+':badge}</em>}
+        </Link>
+      })}
+    </nav>
+
     <div className="sidebar-spacer"/>
-    <button className="logout-link" onClick={logout}>↪ <span>Sair</span></button>
-    <div className="profile"><div className="avatar">{initials}</div><div><strong>{user?.name||'Usuário'}</strong><span>{user?.systemRole==='ADMIN'?'Admin':user?.systemRole==='MANAGER'?'Gerente':'Colaborador'}</span></div><span className="profile-chevron">⌄</span></div>
+
+    <div className="sidebar-bottom">
+      <button className="logout-link" onClick={logout}><FiLogOut/><span>Sair</span></button>
+
+      <div className="profile">
+        <div className="avatar">{initials||<FiUser/>}</div>
+        <div className="profile-copy">
+          <strong>{user?.name||'Usuário'}</strong>
+          <span>{user?.systemRole==='ADMIN'?'Administrador':user?.systemRole==='MANAGER'?'Gerente':'Colaborador'}</span>
+        </div>
+        <FiChevronDown className="profile-chevron"/>
+      </div>
+    </div>
   </aside>
 }
