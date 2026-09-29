@@ -61,6 +61,7 @@ export class DevelopmentService {
       const currentMonths = completedMonths(user.hiredAt, now);
       requirements.push({
         key: 'tenure',
+        source: 'AUTO',
         name: 'Tempo de casa',
         type: QualificationType.TENURE,
         requiredMonths: nextStep.minTenureMonths,
@@ -75,6 +76,7 @@ export class DevelopmentService {
         : 0;
       requirements.push({
         key: 'current-step-tenure',
+        source: 'AUTO',
         name: 'Tempo no nível atual',
         type: QualificationType.TENURE,
         requiredMonths: nextStep.minMonthsInCurrentStep,
@@ -87,6 +89,7 @@ export class DevelopmentService {
       const currentMonths = user.professionalSince ? completedMonths(user.professionalSince, now) : 0;
       requirements.push({
         key: 'experience',
+        source: 'AUTO',
         name: 'Experiência profissional',
         type: QualificationType.EXPERIENCE,
         requiredMonths: nextStep.minExperienceMonths,
@@ -103,6 +106,7 @@ export class DevelopmentService {
       const userQualification = completed.get(requirement.qualificationId);
       requirements.push({
         key: requirement.qualificationId,
+        source: 'QUALIFICATION',
         name: requirement.qualification.name,
         type: requirement.qualification.type,
         description: requirement.qualification.description,
