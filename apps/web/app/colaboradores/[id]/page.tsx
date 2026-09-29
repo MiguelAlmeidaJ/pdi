@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import { AppLayout } from '../../../components/app-layout';
 import { api } from '../../../lib/api';
 
-type Profile={id:string;name:string;email:string;active:boolean;hiredAt:string;professionalSince?:string|null;currentRoleStepStartedAt?:string|null;systemRole:string;team?:{name:string}|null;role?:{id:string;name:string;description?:string|null;steps:{id:string;label:string;code:string;salary:string;order:number}[]}|null;currentRoleStep?:{id:string;label:string;code:string;salary:string;order:number}|null;manager?:{name:string;email:string}|null};
+type Profile={id:string;name:string;email:string;active:boolean;hiredAt:string;professionalSince?:string|null;currentRoleStepStartedAt?:string|null;systemRole:string;team?:{name:string}|null;role?:{id:string;name:string;description?:string|null;steps:{id:string;label:string;code:string;salary:string;order:number}[]}|null;currentRoleStep?:{id:string;label:string;code:string;salary:string;order:number}|null;manager?:{name:string;email:string}|null;careerHistory:{id:string;startedAt:string;endedAt?:string|null;reason?:string|null;salary:string;role:{id:string;name:string};roleStep:{id:string;code:string;label:string;order:number}}[]};
 type Requirement={key:string;name:string;type:string;met:boolean;status?:string;requiredMonths?:number;currentMonths?:number;description?:string|null;notes?:string|null};
 type Development={current:{role:{name:string};step:{label:string;code:string};salary:string;startedAt?:string|null;monthsInCurrentStep?:number};next:null|{label:string;code:string;salary:string};progress:{required:number;completed:number;percentage:number};requirements:Requirement[];eligibleForPromotion:boolean;careerComplete:boolean};
 
@@ -72,6 +72,16 @@ export default function Colaborador(){
         <article className="promotion-cta"><span>↗</span><h3>{dev.eligibleForPromotion?'Elegível para promoção':'Próxima promoção'}</h3><p>{dev.eligibleForPromotion?'Todos os requisitos foram concluídos. O gestor já pode iniciar a análise.':'Faltam '+missing+' requisito(s) para atingir o próximo step.'}</p><button className="primary-button" disabled={!dev.eligibleForPromotion}>{dev.eligibleForPromotion?'Iniciar solicitação':'Ainda não elegível'}</button></article>
       </aside>
     </section>
+
+    <section className="panel career-history-panel">
+      <div className="panel-head"><div><p className="eyebrow">HISTÓRICO</p><h2>Movimentações de carreira</h2></div></div>
+      {profile.careerHistory.length?<div className="career-history-list">{profile.careerHistory.map((item,index)=><div className="career-history-item" key={item.id}>
+        <div className="career-history-marker">{index===0?'●':'○'}</div>
+        <div className="career-history-main"><strong>{item.role.name} · {item.roleStep.label}</strong><span>{new Date(item.startedAt).toLocaleDateString('pt-BR')}{item.endedAt?' até '+new Date(item.endedAt).toLocaleDateString('pt-BR'):' · Atual'}</span>{item.reason&&<p>{item.reason}</p>}</div>
+        <div className="career-history-salary">R$ {Number(item.salary).toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>
+      </div>)}</div>:<div className="empty-state compact"><span>Nenhuma movimentação registrada.</span></div>}
+    </section>
+
     {moveOpen&&profile.role&&<div className="modal-backdrop"><div className="modal modal-lg">
       <div className="modal-head"><div><p className="eyebrow">MOVIMENTAÇÃO DE CARREIRA</p><h2>Alterar etapa de {profile.name}</h2><p>O gestor pode avançar diretamente para outro nível. A justificativa ficará registrada no histórico.</p></div><button className="modal-close" onClick={()=>setMoveOpen(false)}>×</button></div>
       <div className="career-move-current"><span>Atual</span><strong>{profile.currentRoleStep?.label||'Sem step'}</strong><b>→</b><span>Destino</span></div>
