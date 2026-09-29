@@ -85,3 +85,5 @@ body{background:linear-gradient(180deg,#f8f9fc 0%,#f4f6fb 100%);color:var(--text
 @media(max-width:900px){.step-editor-fields{grid-template-columns:1fr 1fr}.career-move-current{grid-template-columns:auto 1fr}}
 
 .career-history-panel{margin-top:16px}.career-history-list{margin-top:14px}.career-history-item{display:grid;grid-template-columns:24px 1fr auto;gap:10px;align-items:flex-start;padding:13px 0;border-top:1px solid #f0f1f4}.career-history-marker{color:#7f56d9;font-size:13px;padding-top:1px}.career-history-main strong,.career-history-main span{display:block}.career-history-main strong{font-size:11px}.career-history-main span{font-size:9px;color:#98a2b3;margin-top:3px}.career-history-main p{font-size:10px;color:#667085;margin:7px 0 0;line-height:1.45}.career-history-salary{font-size:10px;font-weight:700;color:#475467}
+
+.scope-banner{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:11px 13px;border:1px solid #d9d2f7;background:#f7f5ff;border-radius:11px}.scope-banner strong{font-size:10px;color:#5f46c5}.scope-banner span{font-size:10px;color:#667085}
