@@ -22,22 +22,40 @@ export class RolesController {
     return this.service.findAll(request.user, teamId);
   }
 
-  @Roles(SystemRole.ADMIN)
+  @Roles(SystemRole.ADMIN, SystemRole.MANAGER)
   @Post()
-  create(@Body() dto: CreateRoleDto) { return this.service.create(dto); }
+  create(
+    @Body() dto: CreateRoleDto,
+    @Request() request: { user: { sub: string; systemRole: SystemRole } },
+  ) {
+    return this.service.create(dto, request.user);
+  }
 
-  @Roles(SystemRole.ADMIN)
+  @Roles(SystemRole.ADMIN, SystemRole.MANAGER)
   @Put(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateRoleDto) {
-    return this.service.update(id, dto);
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateRoleDto,
+    @Request() request: { user: { sub: string; systemRole: SystemRole } },
+  ) {
+    return this.service.update(id, dto, request.user);
   }
   @Roles(SystemRole.ADMIN, SystemRole.MANAGER)
   @Get('steps/:stepId/requirements')
-  getStepRequirements(@Param('stepId') stepId: string) { return this.service.getStepRequirements(stepId); }
+  getStepRequirements(
+    @Param('stepId') stepId: string,
+    @Request() request: { user: { sub: string; systemRole: SystemRole } },
+  ) {
+    return this.service.getStepRequirements(stepId, request.user);
+  }
 
-  @Roles(SystemRole.ADMIN)
+  @Roles(SystemRole.ADMIN, SystemRole.MANAGER)
   @Put('steps/:stepId/requirements')
-  setStepRequirements(@Param('stepId') stepId: string, @Body() dto: SetStepRequirementsDto) {
-    return this.service.setStepRequirements(stepId, dto);
+  setStepRequirements(
+    @Param('stepId') stepId: string,
+    @Body() dto: SetStepRequirementsDto,
+    @Request() request: { user: { sub: string; systemRole: SystemRole } },
+  ) {
+    return this.service.setStepRequirements(stepId, dto, request.user);
   }
 }
