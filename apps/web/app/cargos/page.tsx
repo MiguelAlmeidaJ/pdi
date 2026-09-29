@@ -2,6 +2,7 @@
 import { useEffect,useState } from 'react';
 import { AppLayout } from '../../components/app-layout';
 import { api } from '../../lib/api';
+import { useSessionUser } from '../../lib/use-session';
 
 type Team={id:string;name:string};
 type Qualification={id:string;name:string;type:string;description?:string;team?:Team|null};
@@ -14,6 +15,7 @@ const stepOptions=['BASE','STEP_1','STEP_2','STEP_3','STEP_4'];
 const typeLabel:Record<string,string>={COURSE:'Curso',KNOWLEDGE:'Conhecimento',TENURE:'Tempo de casa',EXPERIENCE:'Experiência'};
 
 export default function Cargos(){
+  const sessionUser=useSessionUser();
   const [data,setData]=useState<Role[]>([]);
   const [teams,setTeams]=useState<Team[]>([]);
   const [error,setError]=useState('');
@@ -115,10 +117,10 @@ export default function Cargos(){
 
   const filteredQualifications=qualifications.filter(q=>[q.name,q.description,typeLabel[q.type]].some(v=>v?.toLowerCase().includes(qualificationQuery.toLowerCase())));
 
-  return <AppLayout title="Cargos e steps" description="Configure trilhas de carreira e as qualificações exigidas em cada etapa." action={<button className="primary-action" onClick={()=>setOpen(true)}>+ Novo cargo</button>}>
+  return <AppLayout title="Cargos e steps" description="Configure trilhas de carreira e as qualificações exigidas em cada etapa." action={sessionUser?.systemRole==='ADMIN'?<button className="primary-action" onClick={()=>setOpen(true)}>+ Novo cargo</button>:undefined}>
     {error&&<div className="form-error">{error}</div>}
     <section className="roles-list">{data.map(r=><article className="role-card" key={r.id}>
-      <div className="role-title"><div><p className="eyebrow">{r.team.name}</p><h2>{r.name}</h2><span>{r.description||r._count.users+' colaborador(es)'}</span></div><button className="secondary-button" onClick={()=>openRequirements(r)}>Configurar qualificações</button></div>
+      <div className="role-title"><div><p className="eyebrow">{r.team.name}</p><h2>{r.name}</h2><span>{r.description||r._count.users+' colaborador(es)'}</span></div>{sessionUser?.systemRole==='ADMIN'&&<button className="secondary-button" onClick={()=>openRequirements(r)}>Configurar qualificações</button>}</div>
       <div className="role-summary"><span>{r.steps.length} step(s)</span><span>{r.steps.reduce((sum,s)=>sum+s.requirements.length,0)} requisito(s) configurado(s)</span><span>{r._count.users} colaborador(es)</span></div>
       <div className="step-cards">{r.steps.map((s,i)=>{
         const expanded=expandedStepId===s.id;
@@ -131,7 +133,7 @@ export default function Cargos(){
             <div className="step-card-chevron">{expanded?'⌃':'⌄'}</div>
           </button>
           {expanded&&<div className="step-card-details">
-            <div className="step-detail-head"><div><p className="eyebrow">QUALIFICAÇÕES REQUERIDAS</p><h3>{s.label}</h3></div><button className="text-button" onClick={()=>openRequirements(r)}>Editar requisitos →</button></div>
+            <div className="step-detail-head"><div><p className="eyebrow">QUALIFICAÇÕES REQUERIDAS</p><h3>{s.label}</h3></div>{sessionUser?.systemRole==='ADMIN'&&<button className="text-button" onClick={()=>openRequirements(r)}>Editar requisitos →</button>}</div>
             {s.requirements.length?<div className="requirement-tags">{s.requirements.map(req=><div className="requirement-tag" key={req.qualificationId}><span className="requirement-tag-icon">✓</span><div><strong>{req.qualification.name}</strong><small>{typeLabel[req.qualification.type]||req.qualification.type}</small></div></div>)}</div>:<div className="empty-step-requirements"><span>○</span><div><strong>Nenhuma qualificação vinculada</strong><small>Configure o que é necessário para concluir este step.</small></div></div>}
           </div>}
         </div>
