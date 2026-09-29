@@ -3,6 +3,7 @@ import { useEffect,useMemo,useState } from 'react';
 import { AppLayout } from '../../components/app-layout';
 import { api } from '../../lib/api';
 import { useSessionUser } from '../../lib/use-session';
+import { FiPlus,FiSearch,FiX } from 'react-icons/fi';
 
 type Team={id:string;name:string};
 type Q={id:string;name:string;type:string;description?:string;referenceUrl?:string;active:boolean;team?:Team|null;_count:{roleStepRequirements:number;userQualifications:number}};
@@ -56,11 +57,11 @@ export default function Qualificacoes(){
         <button className={!teamId?'filter-chip active':'filter-chip'} onClick={()=>setTeamId('')}>Todos os times</button>
         {teams.map(t=><button key={t.id} className={teamId===t.id?'filter-chip active':'filter-chip'} onClick={()=>setTeamId(t.id)}>{t.name}</button>)}
       </div>
-      {sessionUser?.systemRole==='ADMIN'&&<button className="primary-action" onClick={openCreate}>+ Nova qualificação</button>}
+      {sessionUser?.systemRole==='ADMIN'&&<button className="primary-action action-with-icon" onClick={openCreate}><FiPlus/> Nova qualificação</button>}
     </div>
 
     <div className="table-panel">
-      <div className="table-toolbar"><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar qualificação..."/></div>
+      <div className="table-toolbar"><label className="search-field"><FiSearch/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar qualificação..."/></label></div>
       <div className="data-table">
         <div className="table-row qualifications-row table-head"><span>Qualificação</span><span>Time</span><span>Tipo</span><span>Em steps</span><span>Colaboradores</span><span>Status</span></div>
         {filtered.map(q=><div className="table-row qualifications-row" key={q.id}>
@@ -75,7 +76,7 @@ export default function Qualificacoes(){
     </div>
 
     {open&&<div className="modal-backdrop"><div className="modal modal-lg">
-      <div className="modal-head"><div><p className="eyebrow">REQUISITOS</p><h2>Nova qualificação</h2><p>Cadastre uma qualificação vinculada ao time correto.</p></div><button className="modal-close" onClick={()=>setOpen(false)}>×</button></div>
+      <div className="modal-head"><div><p className="eyebrow">REQUISITOS</p><h2>Nova qualificação</h2><p>Cadastre uma qualificação vinculada ao time correto.</p></div><button className="modal-close" onClick={()=>setOpen(false)} aria-label="Fechar"><FiX/></button></div>
       <div className="form-grid two">
         <label>Time<select value={form.teamId} onChange={e=>setForm({...form,teamId:e.target.value})}><option value="">Selecione...</option>{teams.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></label>
         <label>Tipo<select value={form.type} onChange={e=>setForm({...form,type:e.target.value})}><option value="COURSE">Curso</option><option value="KNOWLEDGE">Conhecimento</option><option value="TENURE">Tempo de casa</option><option value="EXPERIENCE">Experiência</option></select></label>
