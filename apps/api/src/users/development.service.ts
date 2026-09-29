@@ -69,6 +69,20 @@ export class DevelopmentService {
       });
     }
 
+    if (nextStep.minMonthsInCurrentStep != null) {
+      const currentMonths = user.currentRoleStepStartedAt
+        ? completedMonths(user.currentRoleStepStartedAt, now)
+        : 0;
+      requirements.push({
+        key: 'current-step-tenure',
+        name: 'Tempo no nível atual',
+        type: QualificationType.TENURE,
+        requiredMonths: nextStep.minMonthsInCurrentStep,
+        currentMonths,
+        met: currentMonths >= nextStep.minMonthsInCurrentStep,
+      });
+    }
+
     if (nextStep.minExperienceMonths != null) {
       const currentMonths = user.professionalSince ? completedMonths(user.professionalSince, now) : 0;
       requirements.push({
@@ -113,6 +127,7 @@ export class DevelopmentService {
         salary: nextStep.salary,
         minTenureMonths: nextStep.minTenureMonths,
         minExperienceMonths: nextStep.minExperienceMonths,
+        minMonthsInCurrentStep: nextStep.minMonthsInCurrentStep,
       },
       progress: {
         required,
@@ -134,6 +149,10 @@ export class DevelopmentService {
         label: user.currentRoleStep.label,
       },
       salary: user.currentRoleStep.salary,
+      startedAt: user.currentRoleStepStartedAt,
+      monthsInCurrentStep: user.currentRoleStepStartedAt
+        ? completedMonths(user.currentRoleStepStartedAt, new Date())
+        : 0,
     };
   }
 }
