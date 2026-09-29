@@ -74,17 +74,32 @@ export default function Colaboradores(){
     {error&&<div className="form-error">{error}</div>}
     {sessionUser?.systemRole==='MANAGER'&&<div className="scope-banner"><strong>Visão do gerente</strong><span>Você está vendo somente os colaboradores do seu time.</span></div>}
     <section className="people-toolbar"><div><strong>{data.length}</strong><span> colaboradores cadastrados</span></div><label className="search-field"><FiSearch/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar por nome, cargo ou time..."/></label></section>
-    <section className="people-cards">
-      {filtered.map(user=>{
-        const initials=user.name.split(' ').slice(0,2).map(p=>p[0]).join('').toUpperCase();
-        return <Link href={'/colaboradores/'+user.id} className="people-card" key={user.id}>
-          <div className="people-card-top"><div className="avatar large">{initials}</div><span className={user.active?'status-dot active':'status-dot'}>{user.active?'Ativo':'Inativo'}</span></div>
-          <h2>{user.name}</h2><p>{user.email}</p>
-          <div className="people-meta"><span>{user.role?.name||'Sem cargo'}</span><i>•</i><span>{user.team?.name||'Sem time'}</span></div>
-          <div className="people-step"><div><small>STEP ATUAL</small><strong>{user.currentRoleStep?.label||'Não definido'}</strong></div><div className="salary-mini">{user.currentRoleStep?('R$ '+Number(user.currentRoleStep.salary).toLocaleString('pt-BR',{minimumFractionDigits:2})):'—'}</div></div>
-          <div className="people-card-footer"><span>Ver PDI individual</span><b>→</b></div>
-        </Link>
-      })}
+    <section className="people-list-panel">
+      <div className="people-list-head">
+        <span>Colaborador</span>
+        <span>Time</span>
+        <span>Cargo</span>
+        <span>Step atual</span>
+        <span>Status</span>
+        <span></span>
+      </div>
+
+      <div className="people-list-body">
+        {filtered.map(user=>{
+          const initials=user.name.split(' ').slice(0,2).map(p=>p[0]).join('').toUpperCase();
+          return <Link href={'/colaboradores/'+user.id} className="people-list-row" key={user.id}>
+            <div className="people-list-person">
+              <div className="avatar list-avatar">{initials}</div>
+              <div><strong>{user.name}</strong><span>{user.email}</span></div>
+            </div>
+            <div className="people-list-cell"><strong>{user.team?.name||'Sem time'}</strong><span>Equipe</span></div>
+            <div className="people-list-cell"><strong>{user.role?.name||'Sem cargo'}</strong><span>Posição</span></div>
+            <div className="people-list-step"><strong>{user.currentRoleStep?.label||'Não definido'}</strong><span>{user.currentRoleStep?('R$ '+Number(user.currentRoleStep.salary).toLocaleString('pt-BR',{minimumFractionDigits:2})):'Sem salário definido'}</span></div>
+            <div><span className={user.active?'status-dot active':'status-dot'}>{user.active?'Ativo':'Inativo'}</span></div>
+            <div className="people-list-action">Ver PDI <b>→</b></div>
+          </Link>
+        })}
+      </div>
     </section>
     {!filtered.length&&!error&&<div className="empty-state"><b>Nenhum colaborador encontrado</b><span>Ajuste a busca ou cadastre um novo colaborador.</span></div>}
 
