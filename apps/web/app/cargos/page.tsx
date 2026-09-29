@@ -3,6 +3,7 @@ import { useEffect,useState } from 'react';
 import { AppLayout } from '../../components/app-layout';
 import { api } from '../../lib/api';
 import { useSessionUser } from '../../lib/use-session';
+import { FiPlus,FiX } from 'react-icons/fi';
 
 type Team={id:string;name:string};
 type Qualification={id:string;name:string;type:string;description?:string;team?:Team|null};
@@ -117,7 +118,7 @@ export default function Cargos(){
 
   const filteredQualifications=qualifications.filter(q=>[q.name,q.description,typeLabel[q.type]].some(v=>v?.toLowerCase().includes(qualificationQuery.toLowerCase())));
 
-  return <AppLayout title="Cargos e steps" description="Configure trilhas de carreira e as qualificações exigidas em cada etapa." action={sessionUser?.systemRole==='ADMIN'?<button className="primary-action" onClick={()=>setOpen(true)}>+ Novo cargo</button>:undefined}>
+  return <AppLayout title="Cargos e steps" description="Configure trilhas de carreira e as qualificações exigidas em cada etapa." action={sessionUser?.systemRole==='ADMIN'?<button className="primary-action action-with-icon" onClick={()=>setOpen(true)}><FiPlus/> Novo cargo</button>:undefined}>
     {error&&<div className="form-error">{error}</div>}
     <section className="roles-list">{data.map(r=><article className="role-card" key={r.id}>
       <div className="role-title"><div><p className="eyebrow">{r.team.name}</p><h2>{r.name}</h2><span>{r.description||r._count.users+' colaborador(es)'}</span></div>{sessionUser?.systemRole==='ADMIN'&&<button className="secondary-button" onClick={()=>openRequirements(r)}>Configurar qualificações</button>}</div>
@@ -142,7 +143,7 @@ export default function Cargos(){
     {!data.length&&!error&&<div className="empty-state"><b>Nenhum cargo cadastrado</b><span>Crie cargos e seus steps para visualizar as trilhas de carreira.</span></div>}
 
     {open&&<div className="modal-backdrop"><div className="modal modal-xl">
-      <div className="modal-head"><div><p className="eyebrow">CARREIRA</p><h2>Novo cargo</h2><p>Configure o cargo e a trilha salarial por steps.</p></div><button className="modal-close" onClick={()=>setOpen(false)}>×</button></div>
+      <div className="modal-head"><div><p className="eyebrow">CARREIRA</p><h2>Novo cargo</h2><p>Configure o cargo e a trilha salarial por steps.</p></div><button className="modal-close" onClick={()=>setOpen(false)} aria-label="Fechar"><FiX/></button></div>
       <div className="form-grid two">
         <label>Nome do cargo<input value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Ex.: Estagiário"/></label>
         <label>Time<select value={form.teamId} onChange={e=>changeCreateTeam(e.target.value)}><option value="">Selecione...</option>{teams.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></label>
@@ -179,7 +180,7 @@ export default function Cargos(){
     </div></div>}
 
     {requirementsRole&&<div className="modal-backdrop"><div className="modal modal-xl requirements-modal">
-      <div className="modal-head"><div><p className="eyebrow">{requirementsRole.team.name}</p><h2>{requirementsRole.name} · Qualificações requeridas</h2><p>Selecione o step e marque tudo o que o colaborador precisa concluir para avançar.</p></div><button className="modal-close" onClick={()=>setRequirementsRole(null)}>×</button></div>
+      <div className="modal-head"><div><p className="eyebrow">{requirementsRole.team.name}</p><h2>{requirementsRole.name} · Qualificações requeridas</h2><p>Selecione o step e marque tudo o que o colaborador precisa concluir para avançar.</p></div><button className="modal-close" onClick={()=>setRequirementsRole(null)} aria-label="Fechar"><FiX/></button></div>
       <div className="requirements-layout">
         <aside className="step-selector">
           <span className="selector-title">NÍVEIS / STEPS</span>
