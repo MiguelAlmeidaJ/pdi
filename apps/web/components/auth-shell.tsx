@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
-const userAllowedPaths=['/meu-pdi','/notificacoes'];
+const userAllowedPaths=['/meu-pdi','/notificacoes','/perfil'];
 
 export function AuthShell({children}:{children:React.ReactNode}){
   const pathname=usePathname();
