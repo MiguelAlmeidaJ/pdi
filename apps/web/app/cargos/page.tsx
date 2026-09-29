@@ -6,7 +6,7 @@ import { api } from '../../lib/api';
 type Team={id:string;name:string};
 type Qualification={id:string;name:string;type:string;description?:string;team?:Team|null};
 type StepForm={code:string;label:string;order:number;salary:string;minTenureMonths:string;minExperienceMonths:string};
-type RoleStep={id:string;code:string;label:string;salary:string;order:number};
+type RoleStep={id:string;code:string;label:string;salary:string;order:number;requirements:{qualificationId:string;required:boolean;qualification:Qualification}[]};
 type Role={id:string;name:string;description?:string;team:{id:string;name:string};steps:RoleStep[];_count:{users:number}};
 type StepRequirementResponse={id:string;requirements:{qualificationId:string;required:boolean;notes?:string;qualification:Qualification}[]};
 
@@ -29,6 +29,7 @@ export default function Cargos(){
   const [loadingRequirements,setLoadingRequirements]=useState(false);
   const [savingRequirements,setSavingRequirements]=useState(false);
   const [qualificationQuery,setQualificationQuery]=useState('');
+  const [expandedStepId,setExpandedStepId]=useState('');
 
   async function load(){
     try{
@@ -95,7 +96,7 @@ export default function Cargos(){
     setSavingRequirements(true);setError('');
     try{
       await api('/roles/steps/'+selectedStepId+'/requirements',{method:'PUT',body:JSON.stringify({requirements:selectedIds.map(qualificationId=>({qualificationId,required:true}))})});
-      setRequirementsRole(null);
+      setRequirementsRole(null);await load();
     }catch(e){setError(e instanceof Error?e.message:'Erro ao salvar requisitos')}
     finally{setSavingRequirements(false)}
   }
@@ -106,7 +107,23 @@ export default function Cargos(){
     {error&&<div className="form-error">{error}</div>}
     <section className="roles-list">{data.map(r=><article className="role-card" key={r.id}>
       <div className="role-title"><div><p className="eyebrow">{r.team.name}</p><h2>{r.name}</h2><span>{r.description||r._count.users+' colaborador(es)'}</span></div><button className="secondary-button" onClick={()=>openRequirements(r)}>Configurar qualificações</button></div>
-      <div className="step-track">{r.steps.map((s,i)=><div className="career-step" key={s.id}><div className="step-dot">{i+1}</div><div><small>{s.label}</small><strong>R$ {Number(s.salary).toLocaleString('pt-BR',{minimumFractionDigits:2})}</strong></div>{i<r.steps.length-1&&<div className="step-line"/>}</div>)}</div>
+      <div className="role-summary"><span>{r.steps.length} step(s)</span><span>{r.steps.reduce((sum,s)=>sum+s.requirements.length,0)} requisito(s) configurado(s)</span><span>{r._count.users} colaborador(es)</span></div>
+      <div className="step-cards">{r.steps.map((s,i)=>{
+        const expanded=expandedStepId===s.id;
+        return <div className={expanded?'step-card expanded':'step-card'} key={s.id}>
+          <button className="step-card-main" onClick={()=>setExpandedStepId(expanded?'':s.id)}>
+            <div className="step-card-index">{i+1}</div>
+            <div className="step-card-title"><small>{s.code}</small><strong>{s.label}</strong></div>
+            <div className="step-card-salary"><small>SALÁRIO</small><strong>R$ {Number(s.salary).toLocaleString('pt-BR',{minimumFractionDigits:2})}</strong></div>
+            <div className="step-card-count"><b>{s.requirements.length}</b><span>qualificações</span></div>
+            <div className="step-card-chevron">{expanded?'⌃':'⌄'}</div>
+          </button>
+          {expanded&&<div className="step-card-details">
+            <div className="step-detail-head"><div><p className="eyebrow">QUALIFICAÇÕES REQUERIDAS</p><h3>{s.label}</h3></div><button className="text-button" onClick={()=>openRequirements(r)}>Editar requisitos →</button></div>
+            {s.requirements.length?<div className="requirement-tags">{s.requirements.map(req=><div className="requirement-tag" key={req.qualificationId}><span className="requirement-tag-icon">✓</span><div><strong>{req.qualification.name}</strong><small>{typeLabel[req.qualification.type]||req.qualification.type}</small></div></div>)}</div>:<div className="empty-step-requirements"><span>○</span><div><strong>Nenhuma qualificação vinculada</strong><small>Configure o que é necessário para concluir este step.</small></div></div>}
+          </div>}
+        </div>
+      })}</div>
     </article>)}</section>
     {!data.length&&!error&&<div className="empty-state"><b>Nenhum cargo cadastrado</b><span>Crie cargos e seus steps para visualizar as trilhas de carreira.</span></div>}
 
