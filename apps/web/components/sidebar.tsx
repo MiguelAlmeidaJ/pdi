@@ -1,6 +1,8 @@
 'use client';
+import { useEffect,useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSessionUser } from '../lib/use-session';
+import { api } from '../lib/api';
 
 const managementItems=[
   ['Visão geral','⌂','/'],
@@ -22,6 +24,14 @@ export function Sidebar(){
   const user=useSessionUser();
   const items=user?.systemRole==='USER'?userItems:managementItems;
   const initials=(user?.name||'Usuário').split(' ').slice(0,2).map(p=>p[0]).join('').toUpperCase();
+  const [pendingReviews,setPendingReviews]=useState(0);
+
+  useEffect(()=>{
+    if(!user||user.systemRole==='USER')return;
+    api<{count:number}>('/users/reviews/pending/count')
+      .then(result=>setPendingReviews(result.count))
+      .catch(()=>setPendingReviews(0));
+  },[user,path]);
 
   function logout(){
     localStorage.removeItem('pdi_token');
@@ -34,7 +44,8 @@ export function Sidebar(){
     <div className="sidebar-section-title">{user?.systemRole==='USER'?'MEU PDI':'WORKSPACE'}</div>
     <nav>{items.map(([label,icon,href])=>{
       const active=href==='/'?path==='/':path.startsWith(href);
-      return <a className={'nav-item '+(active?'active':'')} href={href} key={label}><i>{icon}</i><span>{label}</span>{active&&<b className="active-indicator"/>}</a>
+      const badge=href==='/avaliacoes'&&pendingReviews>0?pendingReviews:0;
+      return <a className={'nav-item '+(active?'active':'')} href={href} key={label}><i>{icon}</i><span>{label}</span>{badge>0&&<em className="nav-badge">{badge>99?'99+':badge}</em>}{active&&<b className="active-indicator"/>}</a>
     })}</nav>
     <div className="sidebar-spacer"/>
     <button className="logout-link" onClick={logout}>↪ <span>Sair</span></button>
