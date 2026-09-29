@@ -48,9 +48,8 @@ export default function Qualificacoes(){
         name:form.name,
         type:form.type,
         description:form.description||undefined,
-        active:form.active,
         links:cleanLinks(),
-        ...(editing?{}:{teamId:form.teamId}),
+        ...(editing?{active:form.active}:{teamId:form.teamId}),
       };
       await api(editing?'/qualifications/'+editing.id:'/qualifications',{
         method:editing?'PATCH':'POST',
