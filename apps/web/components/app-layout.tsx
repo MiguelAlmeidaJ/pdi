@@ -18,9 +18,11 @@ export function AppLayout({
 }){
   return <div className="app-shell">
     <Sidebar/>
-    <main className="content">
+    <div className="app-workspace">
       <AppHeader title={title} description={description} action={action} eyebrow={eyebrow}/>
-      {children}
-    </main>
+      <main className="page-content">
+        {children}
+      </main>
+    </div>
   </div>
 }
