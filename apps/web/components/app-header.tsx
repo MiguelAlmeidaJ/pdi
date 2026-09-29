@@ -18,6 +18,7 @@ export function AppHeader({
   const context=eyebrow||(user?.systemRole==='USER'?'DESENVOLVIMENTO':'GESTÃO');
 
   return <header className="app-header">
+    <div className="app-header-inner">
     <div className="app-header-copy">
       <p className="eyebrow">{context}</p>
       <h1>{title}</h1>
@@ -26,6 +27,7 @@ export function AppHeader({
     <div className="app-header-actions">
       <NotificationCenter/>
       {action}
+    </div>
     </div>
   </header>
 }
