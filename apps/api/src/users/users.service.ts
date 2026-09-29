@@ -78,7 +78,23 @@ export class UsersService {
     return user;
   }
 
-  async create(dto: CreateUserDto) {
+  async create(dto: CreateUserDto, actor: { sub: string; systemRole: SystemRole }) {
+    let effectiveTeamId = dto.teamId;
+    let effectiveSystemRole = dto.systemRole ?? SystemRole.USER;
+    let effectiveManagerId = dto.managerId;
+
+    if (actor.systemRole === SystemRole.MANAGER) {
+      const managerTeamId = await this.getActorTeamId(actor.sub);
+      if (dto.teamId !== managerTeamId) {
+        throw new ForbiddenException('Gerentes só podem criar colaboradores no próprio time');
+      }
+      if (dto.systemRole && dto.systemRole !== SystemRole.USER) {
+        throw new ForbiddenException('Gerentes só podem criar usuários com perfil de colaborador');
+      }
+      effectiveTeamId = managerTeamId;
+      effectiveSystemRole = SystemRole.USER;
+      effectiveManagerId = dto.managerId || actor.sub;
+    }
     const email = dto.email.toLowerCase();
     if (await this.prisma.user.findUnique({ where: { email } })) throw new ConflictException('E-mail já cadastrado');
 
@@ -95,7 +111,7 @@ export class UsersService {
     if (dto.roleId) {
       const role = await this.prisma.role.findUnique({ where: { id: dto.roleId }, select: { id: true, teamId: true } });
       if (!role) throw new NotFoundException('Cargo não encontrado');
-      if (role.teamId !== dto.teamId) throw new BadRequestException('O cargo deve pertencer ao time selecionado');
+      if (role.teamId !== effectiveTeamId) throw new BadRequestException('O cargo deve pertencer ao time selecionado');
     }
 
     const passwordHash = await argon2.hash(dto.password);
@@ -111,14 +127,14 @@ export class UsersService {
           name: dto.name,
           email,
           passwordHash,
-          systemRole: dto.systemRole,
+          systemRole: effectiveSystemRole,
           hiredAt: new Date(dto.hiredAt),
           professionalSince: dto.professionalSince ? new Date(dto.professionalSince) : undefined,
-          teamId: dto.teamId,
+          teamId: effectiveTeamId,
           roleId: dto.roleId,
           currentRoleStepId: dto.currentRoleStepId,
           currentRoleStepStartedAt: startedAt,
-          managerId: dto.managerId,
+          managerId: effectiveManagerId,
         },
         select: { id: true, name: true, email: true, systemRole: true, active: true, hiredAt: true },
       });
