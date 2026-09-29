@@ -1633,3 +1633,231 @@ body{
     left:80px;
   }
 }
+
+
+/* ===== Final compact rail geometry + role editor ===== */
+@media(min-width:651px){
+  .app-shell{
+    grid-template-columns:68px minmax(0,1fr);
+  }
+
+  .sidebar{
+    width:68px;
+    padding:14px 8px 12px;
+    box-sizing:border-box;
+  }
+
+  .sidebar:hover,.sidebar:focus-within{
+    width:252px;
+  }
+
+  .brand{
+    width:52px;
+    min-width:52px;
+    height:58px;
+    min-height:58px;
+    padding:0 7px 16px;
+    margin:0 auto 8px;
+    justify-content:flex-start;
+    box-sizing:border-box;
+  }
+
+  .sidebar:hover .brand,.sidebar:focus-within .brand{
+    width:100%;
+    margin-left:0;
+    margin-right:0;
+  }
+
+  .brand-mark{
+    width:38px!important;
+    height:38px!important;
+    flex:0 0 38px!important;
+    margin:0!important;
+  }
+
+  .sidebar-section-title{
+    width:100%;
+    height:27px;
+    padding:7px 8px 4px;
+  }
+
+  .sidebar-nav{
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    gap:6px;
+  }
+
+  .nav-item{
+    width:100%;
+    height:42px;
+    min-height:42px;
+    padding:5px 6px;
+    margin:0;
+    gap:10px;
+    border-radius:10px;
+  }
+
+  .nav-icon{
+    width:32px!important;
+    height:32px!important;
+    min-width:32px!important;
+    flex:0 0 32px!important;
+    margin:0!important;
+  }
+
+  .sidebar:not(:hover):not(:focus-within) .nav-item{
+    width:52px;
+    padding:5px 10px;
+    margin-left:auto;
+    margin-right:auto;
+    justify-content:flex-start;
+  }
+
+  .sidebar:not(:hover):not(:focus-within) .nav-icon{
+    margin:0!important;
+  }
+
+  .sidebar:not(:hover):not(:focus-within) .nav-item.active:before{
+    left:-8px;
+    top:9px;
+  }
+
+  .sidebar-bottom{
+    width:52px;
+    min-width:52px;
+    margin:0 auto;
+    padding-top:10px;
+  }
+
+  .sidebar:hover .sidebar-bottom,.sidebar:focus-within .sidebar-bottom{
+    width:100%;
+    min-width:0;
+    margin-left:0;
+    margin-right:0;
+  }
+
+  .profile-button{
+    width:52px;
+    min-width:52px;
+    height:48px;
+    padding:6px 8px;
+    margin:0;
+    justify-content:flex-start;
+  }
+
+  .sidebar:not(:hover):not(:focus-within) .profile-button{
+    width:52px;
+    min-width:52px;
+    padding:6px 8px;
+    justify-content:flex-start;
+  }
+
+  .profile .avatar{
+    width:36px!important;
+    height:36px!important;
+    flex:0 0 36px!important;
+    margin:0!important;
+  }
+}
+
+.role-card-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+
+.edit-role-steps-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:12px;
+  margin:22px 0 10px;
+}
+.edit-role-steps-head h3{font-size:14px;margin:4px 0 0}
+.edit-role-steps-head>span{
+  padding:5px 8px;
+  border-radius:999px;
+  background:#f2f4f7;
+  color:#667085;
+  font-size:8px;
+  font-weight:700;
+}
+
+.edit-role-steps{
+  display:grid;
+  gap:9px;
+}
+.edit-role-step{
+  display:grid;
+  grid-template-columns:34px minmax(0,1fr);
+  gap:10px;
+  align-items:start;
+  padding:12px;
+  border:1px solid var(--border);
+  border-radius:11px;
+  background:#fbfcfd;
+}
+.edit-role-step-number{
+  width:30px;height:30px;
+  display:grid;place-items:center;
+  border-radius:9px;
+  background:var(--primary-soft);
+  color:var(--primary-strong);
+  font-size:9px;
+  font-weight:800;
+}
+.edit-role-step-fields{
+  display:grid;
+  grid-template-columns:1.2fr 1fr 1fr 1fr 1.2fr;
+  gap:9px;
+}
+.edit-role-step-fields label{
+  color:#344054;
+  font-size:8px;
+  font-weight:700;
+}
+.edit-role-step-fields input{
+  width:100%;
+  margin-top:5px;
+  padding:9px 10px;
+  border:1px solid var(--border-strong);
+  border-radius:8px;
+  background:#fff;
+  font:inherit;
+  font-weight:500;
+  outline:none;
+}
+.edit-role-step-fields input:focus{
+  border-color:#8a99ff;
+  box-shadow:0 0 0 3px rgba(70,95,255,.10);
+}
+.edit-role-step-fields small{
+  display:block;
+  margin-top:3px;
+  color:#98a2b3;
+  font-size:7px;
+  font-weight:500;
+}
+.edit-role-note{
+  margin-top:12px;
+  padding:10px 12px;
+  border:1px solid #dfe3ff;
+  border-radius:9px;
+  background:#f7f8ff;
+  color:#5a67a8;
+  font-size:8px;
+  line-height:1.45;
+}
+
+@media(max-width:900px){
+  .edit-role-step-fields{grid-template-columns:1fr 1fr}
+}
+@media(max-width:650px){
+  .role-card-actions{justify-content:flex-start}
+  .edit-role-step{grid-template-columns:1fr}
+  .edit-role-step-fields{grid-template-columns:1fr}
+}
