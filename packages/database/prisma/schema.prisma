@@ -30,6 +30,7 @@ enum QualificationType {
 enum QualificationStatus {
   PENDING
   IN_PROGRESS
+  AWAITING_REVIEW
   COMPLETED
   REJECTED
 }
@@ -160,6 +161,8 @@ model UserQualification {
   status QualificationStatus @default(PENDING)
   completedAt DateTime?
   evidenceUrl String?
+  submissionNotes String?
+  submittedAt DateTime?
   notes String?
   evaluatorId String?
   evaluatedAt DateTime?
