@@ -54,6 +54,19 @@ export class UsersService {
         },
         currentRoleStep: { select: { id: true, code: true, label: true, salary: true, order: true } },
         manager: { select: { id: true, name: true, email: true } },
+        careerHistory: {
+          orderBy: { startedAt: 'desc' },
+          take: 10,
+          select: {
+            id: true,
+            startedAt: true,
+            endedAt: true,
+            reason: true,
+            salary: true,
+            role: { select: { id: true, name: true } },
+            roleStep: { select: { id: true, code: true, label: true, order: true } },
+          },
+        },
       },
     });
     if (!user) throw new NotFoundException('Usuário não encontrado');
