@@ -14,6 +14,7 @@ export class CreateRoleStepDto {
   @IsNumber({ maxDecimalPlaces: 2 }) @Min(0) salary!: number;
   @IsInt() @Min(0) @IsOptional() minTenureMonths?: number;
   @IsInt() @Min(0) @IsOptional() minExperienceMonths?: number;
+  @IsInt() @Min(0) @IsOptional() minMonthsInCurrentStep?: number;
 
   @IsArray()
   @ValidateNested({ each: true })
