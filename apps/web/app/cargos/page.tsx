@@ -5,7 +5,7 @@ import { api } from '../../lib/api';
 
 type Team={id:string;name:string};
 type Qualification={id:string;name:string;type:string;description?:string;team?:Team|null};
-type StepForm={code:string;label:string;order:number;salary:string;minTenureMonths:string;minExperienceMonths:string;qualificationIds:string[]};
+type StepForm={code:string;label:string;order:number;salary:string;minTenureMonths:string;minExperienceMonths:string;minMonthsInCurrentStep:string;qualificationIds:string[]};
 type RoleStep={id:string;code:string;label:string;salary:string;order:number;requirements:{qualificationId:string;required:boolean;qualification:Qualification}[]};
 type Role={id:string;name:string;description?:string;team:{id:string;name:string};steps:RoleStep[];_count:{users:number}};
 type StepRequirementResponse={id:string;requirements:{qualificationId:string;required:boolean;notes?:string;qualification:Qualification}[]};
@@ -20,7 +20,7 @@ export default function Cargos(){
   const [open,setOpen]=useState(false);
   const [saving,setSaving]=useState(false);
   const [form,setForm]=useState({name:'',description:'',teamId:''});
-  const [steps,setSteps]=useState<StepForm[]>([{code:'BASE',label:'Base',order:0,salary:'',minTenureMonths:'0',minExperienceMonths:'0',qualificationIds:[]}]);
+  const [steps,setSteps]=useState<StepForm[]>([{code:'BASE',label:'Base',order:0,salary:'',minTenureMonths:'0',minExperienceMonths:'0',minMonthsInCurrentStep:'0',qualificationIds:[]}]);
   const [createQualifications,setCreateQualifications]=useState<Qualification[]>([]);
   const [createQualificationQuery,setCreateQualificationQuery]=useState('');
 
@@ -45,7 +45,7 @@ export default function Cargos(){
     const next=stepOptions.find(code=>!steps.some(s=>s.code===code));
     if(!next)return;
     const order=steps.length;
-    setSteps([...steps,{code:next,label:next.replace('STEP_','Step ').replace('BASE','Base'),order,salary:'',minTenureMonths:'0',minExperienceMonths:'0',qualificationIds:[]}]);
+    setSteps([...steps,{code:next,label:next.replace('STEP_','Step ').replace('BASE','Base'),order,salary:'',minTenureMonths:'0',minExperienceMonths:'0',minMonthsInCurrentStep:'0',qualificationIds:[]}]);
   }
   function updateStep(index:number,key:keyof StepForm,value:string|number){setSteps(steps.map((s,i)=>i===index?{...s,[key]:value}:s))}
   function removeStep(index:number){if(index===0)return;setSteps(steps.filter((_,i)=>i!==index).map((s,i)=>({...s,order:i})))}
@@ -65,7 +65,7 @@ export default function Cargos(){
     try{
       await api('/roles',{method:'POST',body:JSON.stringify({
         name:form.name,description:form.description||undefined,teamId:form.teamId,
-        steps:steps.map((s,i)=>({code:s.code,label:s.label,order:i,salary:Number(s.salary),minTenureMonths:s.minTenureMonths===''?undefined:Number(s.minTenureMonths),minExperienceMonths:s.minExperienceMonths===''?undefined:Number(s.minExperienceMonths),requirements:s.qualificationIds.map(qualificationId=>({qualificationId}))}))
+        steps:steps.map((s,i)=>({code:s.code,label:s.label,order:i,salary:Number(s.salary),minTenureMonths:s.minTenureMonths===''?undefined:Number(s.minTenureMonths),minExperienceMonths:s.minExperienceMonths===''?undefined:Number(s.minExperienceMonths),minMonthsInCurrentStep:s.minMonthsInCurrentStep===''?undefined:Number(s.minMonthsInCurrentStep),requirements:s.qualificationIds.map(qualificationId=>({qualificationId}))}))
       })});
       setOpen(false);setForm({name:'',description:'',teamId:''});
       setSteps([{code:'BASE',label:'Base',order:0,salary:'',minTenureMonths:'0',minExperienceMonths:'0',qualificationIds:[]}]);setCreateQualifications([]);setCreateQualificationQuery('');
@@ -156,7 +156,7 @@ export default function Cargos(){
             <label>Rótulo<input value={s.label} onChange={e=>updateStep(i,'label',e.target.value)}/></label>
             <label>Salário<input type="number" min="0" step="0.01" value={s.salary} onChange={e=>updateStep(i,'salary',e.target.value)} placeholder="0,00"/></label>
             <label>Tempo empresa (meses)<input type="number" min="0" value={s.minTenureMonths} onChange={e=>updateStep(i,'minTenureMonths',e.target.value)}/></label>
-            <label>Experiência (meses)<input type="number" min="0" value={s.minExperienceMonths} onChange={e=>updateStep(i,'minExperienceMonths',e.target.value)}/></label>
+            <label>Experiência (meses)<input type="number" min="0" value={s.minExperienceMonths} onChange={e=>updateStep(i,'minExperienceMonths',e.target.value)}/></label><label>Tempo no nível anterior (meses)<input type="number" min="0" value={s.minMonthsInCurrentStep} onChange={e=>updateStep(i,'minMonthsInCurrentStep',e.target.value)}/></label>
           </div>
           <div className="step-inline-requirements">
             <div className="inline-requirements-head"><span>QUALIFICAÇÕES REQUERIDAS</span><b>{s.qualificationIds.length} selecionada(s)</b></div>
