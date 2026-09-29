@@ -11,5 +11,6 @@ export class CreateUserDto {
   @IsString() teamId!: string;
   @IsString() @IsOptional() roleId?: string;
   @IsString() @IsOptional() currentRoleStepId?: string;
+  @IsDateString() @IsOptional() currentRoleStepStartedAt?: string;
   @IsString() @IsOptional() managerId?: string;
 }
