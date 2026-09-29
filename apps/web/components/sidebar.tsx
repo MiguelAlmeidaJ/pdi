@@ -88,7 +88,7 @@ export function Sidebar(){
         const active=item.href==='/'?path==='/':path.startsWith(item.href);
         const Icon=item.icon;
         const badge=item.reviewBadge&&pendingReviews>0?pendingReviews:0;
-        return <Link className={'nav-item '+(active?'active':'')} href={item.href} key={item.href}>
+        return <Link className={'nav-item '+(active?'active':'')} href={item.href} key={item.href} data-tooltip={item.label} aria-label={item.label}>
           <span className="nav-icon"><Icon/></span>
           <span className="nav-text">{item.label}</span>
           {badge>0&&<em className="nav-badge">{badge>99?'99+':badge}</em>}
@@ -105,7 +105,7 @@ export function Sidebar(){
         <button onClick={logout}><FiLogOut/><span>Sair do sistema</span></button>
       </div>
 
-      <button className="profile profile-button" onClick={()=>setProfileOpen(open=>!open)} aria-expanded={profileOpen}>
+      <button className="profile profile-button" onClick={()=>setProfileOpen(open=>!open)} aria-expanded={profileOpen} data-tooltip="Minha conta" aria-label="Minha conta">
         <div className="avatar">{initials||<FiUser/>}</div>
         <div className="profile-copy">
           <strong>{user?.name||'Usuário'}</strong>
