@@ -76,6 +76,7 @@ export class RolesService {
             salary: s.salary.toString(),
             minTenureMonths: s.minTenureMonths,
             minExperienceMonths: s.minExperienceMonths,
+            minMonthsInCurrentStep: s.minMonthsInCurrentStep,
             requirements: s.requirements?.length ? {
               create: s.requirements.map((requirement) => ({
                 qualificationId: requirement.qualificationId,
