@@ -96,6 +96,6 @@ export class UsersController {
     @Request() request: AuthenticatedRequest,
   ) {
     await this.users.assertCanAccessUser(request.user, id);
-    return this.userQualifications.set(id, qualificationId, dto);
+    return this.userQualifications.set(id, qualificationId, dto, request.user.sub);
   }
 }
