@@ -1,7 +1,18 @@
 'use client';
 
 import { useEffect,useState } from 'react';
-import { FiBriefcase,FiKey,FiMail,FiShield,FiUser,FiUsers,FiX } from 'react-icons/fi';
+import {
+  FiBriefcase,
+  FiCalendar,
+  FiCheckCircle,
+  FiKey,
+  FiLayers,
+  FiMail,
+  FiShield,
+  FiUserCheck,
+  FiUsers,
+  FiX,
+} from 'react-icons/fi';
 import { AppLayout } from '../../components/app-layout';
 import { api } from '../../lib/api';
 
@@ -62,32 +73,90 @@ export default function Perfil(){
   const initials=profile.name.split(' ').slice(0,2).map(p=>p[0]).join('').toUpperCase();
   const roleLabel=profile.systemRole==='ADMIN'?'Administrador':profile.systemRole==='MANAGER'?'Gerente':'Colaborador';
 
-  return <AppLayout title="Meu perfil" description="Consulte suas informações e gerencie sua segurança.">
+  return <AppLayout title="Meu perfil" description="Informações da conta, posição atual e segurança de acesso.">
     {error&&<div className="form-error">{error}</div>}
     {success&&<div className="profile-success">{success}</div>}
 
-    <section className="profile-settings-grid">
-      <article className="panel profile-settings-card">
-        <div className="profile-settings-head">
-          <div className="avatar xl">{initials}</div>
-          <div><p className="eyebrow">CONTA</p><h2>{profile.name}</h2><span>{roleLabel}</span></div>
+    <section className="profile-hero">
+      <div className="profile-hero-accent"/>
+      <div className="profile-hero-content">
+        <div className="profile-avatar-wrap">
+          <div className="profile-avatar-large">{initials}</div>
+          <span className={profile.active?'profile-presence active':'profile-presence'}/>
         </div>
 
-        <div className="profile-settings-list">
-          <div><FiMail/><span>E-mail</span><strong>{profile.email}</strong></div>
-          <div><FiUsers/><span>Time</span><strong>{profile.team?.name||'Não definido'}</strong></div>
-          <div><FiBriefcase/><span>Cargo</span><strong>{profile.role?.name||'Não definido'}</strong></div>
-          <div><FiShield/><span>Perfil de acesso</span><strong>{roleLabel}</strong></div>
+        <div className="profile-hero-copy">
+          <div className="profile-hero-title">
+            <div>
+              <p className="eyebrow">MINHA CONTA</p>
+              <h2>{profile.name}</h2>
+            </div>
+            <span className="profile-role-badge"><FiShield/>{roleLabel}</span>
+          </div>
+          <p>{profile.email}</p>
+          <div className="profile-hero-meta">
+            <span><FiUsers/>{profile.team?.name||'Time não definido'}</span>
+            <span><FiBriefcase/>{profile.role?.name||'Cargo não definido'}</span>
+            <span><FiLayers/>{profile.currentRoleStep?.label||'Step não definido'}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section className="profile-overview-grid">
+      <article className="panel profile-details-card">
+        <div className="panel-head">
+          <div><p className="eyebrow">INFORMAÇÕES</p><h2>Dados profissionais</h2><p className="panel-description">Informações vinculadas à sua posição atual no PDI.</p></div>
+        </div>
+
+        <div className="profile-info-grid">
+          <div className="profile-info-item">
+            <span className="profile-info-icon"><FiMail/></span>
+            <div><small>E-mail</small><strong>{profile.email}</strong></div>
+          </div>
+          <div className="profile-info-item">
+            <span className="profile-info-icon"><FiUsers/></span>
+            <div><small>Time</small><strong>{profile.team?.name||'Não definido'}</strong></div>
+          </div>
+          <div className="profile-info-item">
+            <span className="profile-info-icon"><FiBriefcase/></span>
+            <div><small>Cargo</small><strong>{profile.role?.name||'Não definido'}</strong></div>
+          </div>
+          <div className="profile-info-item">
+            <span className="profile-info-icon"><FiLayers/></span>
+            <div><small>Step atual</small><strong>{profile.currentRoleStep?.label||'Não definido'}</strong></div>
+          </div>
+          <div className="profile-info-item">
+            <span className="profile-info-icon"><FiUserCheck/></span>
+            <div><small>Gestor</small><strong>{profile.manager?.name||'Não definido'}</strong></div>
+          </div>
+          <div className="profile-info-item">
+            <span className="profile-info-icon"><FiCalendar/></span>
+            <div><small>Admissão</small><strong>{new Date(profile.hiredAt).toLocaleDateString('pt-BR')}</strong></div>
+          </div>
         </div>
       </article>
 
-      <article className="panel profile-security-card">
-        <div className="profile-security-icon"><FiKey/></div>
-        <p className="eyebrow">SEGURANÇA</p>
-        <h2>Senha de acesso</h2>
-        <p>Atualize sua senha periodicamente e evite reutilizar credenciais de outros sistemas.</p>
-        <button className="primary-action action-with-icon" onClick={()=>setPasswordOpen(true)}><FiKey/> Alterar senha</button>
-      </article>
+      <aside className="profile-side-column">
+        <article className="panel profile-security-card premium">
+          <div className="profile-security-top">
+            <div className="profile-security-icon"><FiKey/></div>
+            <span className="profile-security-status"><FiCheckCircle/> Protegida</span>
+          </div>
+          <p className="eyebrow">SEGURANÇA</p>
+          <h2>Senha de acesso</h2>
+          <p>Atualize sua senha quando necessário para manter o acesso à conta protegido.</p>
+          <button className="primary-action action-with-icon" onClick={()=>setPasswordOpen(true)}><FiKey/> Alterar senha</button>
+        </article>
+
+        <article className="panel profile-account-card">
+          <p className="eyebrow">ACESSO</p>
+          <h2>Perfil no sistema</h2>
+          <div className="profile-account-row"><span>Status</span><strong className={profile.active?'account-status active':'account-status'}>{profile.active?'Ativo':'Inativo'}</strong></div>
+          <div className="profile-account-row"><span>Nível de acesso</span><strong>{roleLabel}</strong></div>
+          <div className="profile-account-row"><span>ID da conta</span><strong className="mono">{profile.id.slice(0,10)}…</strong></div>
+        </article>
+      </aside>
     </section>
 
     {passwordOpen&&<div className="modal-backdrop"><div className="modal">
