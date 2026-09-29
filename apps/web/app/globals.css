@@ -1328,3 +1328,308 @@ body{
   .profile-hero-content{gap:13px}
   .profile-hero-meta{display:grid;grid-template-columns:1fr}
 }
+
+
+/* ===== Roles grouped by team + compact sidebar alignment fix ===== */
+.roles-toolbar{
+  display:grid;
+  grid-template-columns:auto minmax(280px,1fr) 220px;
+  gap:12px;
+  align-items:center;
+  margin-bottom:12px;
+}
+.roles-toolbar-copy{
+  min-width:118px;
+  padding:10px 12px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:#fff;
+}
+.roles-toolbar-copy strong,.roles-toolbar-copy span{display:block}
+.roles-toolbar-copy strong{font-size:18px;line-height:1;color:var(--text)}
+.roles-toolbar-copy span{font-size:8px;color:var(--muted);margin-top:4px}
+.roles-search{width:100%;min-width:0}
+.roles-team-select{
+  width:100%;
+  min-height:40px;
+  padding:0 11px;
+  border:1px solid var(--border-strong);
+  border-radius:9px;
+  background:#fff;
+  color:var(--text-secondary);
+  font-size:10px;
+  outline:none;
+}
+.roles-team-select:focus{
+  border-color:#8a99ff;
+  box-shadow:0 0 0 3px rgba(70,95,255,.10);
+}
+
+.roles-team-tabs{
+  display:flex;
+  gap:7px;
+  overflow-x:auto;
+  padding:1px 0 12px;
+  scrollbar-width:none;
+}
+.roles-team-tabs::-webkit-scrollbar{display:none}
+.roles-team-tabs button{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  flex:0 0 auto;
+  padding:7px 10px;
+  border:1px solid var(--border);
+  border-radius:999px;
+  background:#fff;
+  color:var(--muted);
+  font-size:9px;
+  font-weight:700;
+  cursor:pointer;
+}
+.roles-team-tabs button span{
+  min-width:18px;
+  height:18px;
+  padding:0 5px;
+  display:grid;
+  place-items:center;
+  border-radius:999px;
+  background:#f2f4f7;
+  color:#667085;
+  font-size:8px;
+}
+.roles-team-tabs button:hover{
+  border-color:#d5daf0;
+  background:#fbfcff;
+}
+.roles-team-tabs button.active{
+  border-color:#cdd4ff;
+  background:var(--primary-soft-2);
+  color:var(--primary-strong);
+}
+.roles-team-tabs button.active span{
+  background:#e6eaff;
+  color:var(--primary-strong);
+}
+
+.roles-by-team{display:grid;gap:18px}
+.role-team-section{
+  overflow:hidden;
+  border:1px solid var(--border);
+  border-radius:15px;
+  background:#fff;
+  box-shadow:var(--shadow-sm);
+}
+.role-team-header{
+  display:grid;
+  grid-template-columns:42px 1fr auto;
+  gap:12px;
+  align-items:center;
+  padding:15px 17px;
+  border-bottom:1px solid var(--border);
+  background:linear-gradient(180deg,#fbfcfe,#f8fafc);
+}
+.role-team-icon{
+  width:40px;height:40px;
+  display:grid;place-items:center;
+  border-radius:11px;
+  background:var(--primary-soft);
+  color:var(--primary);
+}
+.role-team-icon svg{width:17px;height:17px}
+.role-team-heading h2{font-size:15px;margin:3px 0 2px}
+.role-team-heading span{font-size:8px;color:var(--muted-light)}
+.role-team-metrics{
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+.role-team-metrics>div{
+  min-width:86px;
+  display:grid;
+  grid-template-columns:16px auto;
+  column-gap:6px;
+  align-items:center;
+  padding:8px 10px;
+  border:1px solid var(--border);
+  border-radius:9px;
+  background:#fff;
+}
+.role-team-metrics svg{grid-row:1/3;width:13px;height:13px;color:#98a2b3}
+.role-team-metrics strong,.role-team-metrics span{display:block}
+.role-team-metrics strong{font-size:11px;color:var(--text-secondary)}
+.role-team-metrics span{font-size:7px;color:var(--muted-light)}
+.role-team-section>.roles-list{
+  padding:12px;
+  gap:12px;
+}
+.role-team-section .role-card{
+  box-shadow:none;
+  border-color:#e9edf3;
+  border-radius:12px;
+  padding:17px;
+}
+.role-team-section .role-card:hover{border-color:#dbe1ea}
+.role-team-section .role-title .eyebrow{display:none}
+.role-team-section .role-title h2{font-size:15px}
+.role-team-section .role-summary{margin-top:11px}
+.step-card-chevron{
+  display:grid;
+  place-items:center;
+  color:#98a2b3;
+  transition:transform .16s ease,color .16s ease;
+}
+.step-card-chevron svg{width:14px;height:14px}
+.step-card-chevron.expanded{transform:rotate(180deg);color:var(--primary)}
+
+@media(max-width:950px){
+  .roles-toolbar{grid-template-columns:1fr 180px}
+  .roles-toolbar-copy{display:none}
+  .role-team-header{grid-template-columns:42px 1fr}
+  .role-team-metrics{grid-column:1/-1}
+}
+
+@media(max-width:650px){
+  .roles-toolbar{grid-template-columns:1fr}
+  .roles-team-select{display:none}
+  .role-team-header{padding:13px}
+  .role-team-metrics{overflow-x:auto}
+  .role-team-section>.roles-list{padding:8px}
+}
+
+/* precise sidebar rail geometry */
+@media(min-width:651px){
+  .app-shell{grid-template-columns:72px minmax(0,1fr)}
+
+  .sidebar{
+    width:72px;
+    padding:16px 10px 12px;
+    align-items:stretch;
+    overflow:hidden;
+  }
+
+  .sidebar:hover,.sidebar:focus-within{
+    width:252px;
+  }
+
+  .brand{
+    width:100%;
+    min-height:58px;
+    padding:0 7px 17px;
+    margin:0 0 10px;
+    justify-content:flex-start;
+    gap:12px;
+  }
+
+  .brand-mark{
+    width:38px;
+    height:38px;
+    flex:0 0 38px;
+    margin:0;
+  }
+
+  .sidebar-section-title{
+    width:100%;
+    height:30px;
+    padding:9px 10px 5px;
+    margin:0;
+  }
+
+  .sidebar-nav{
+    width:100%;
+    display:grid;
+    gap:7px;
+    padding:0;
+  }
+
+  .nav-item{
+    position:relative;
+    width:100%;
+    height:42px;
+    min-height:42px;
+    margin:0;
+    padding:5px 8px;
+    gap:10px;
+  }
+
+  .nav-icon{
+    width:32px;
+    height:32px;
+    flex:0 0 32px;
+    margin:0;
+  }
+
+  .sidebar:not(:hover):not(:focus-within) .brand{
+    justify-content:center;
+    padding-left:0;
+    padding-right:0;
+  }
+
+  .sidebar:not(:hover):not(:focus-within) .nav-item{
+    justify-content:center;
+    padding:5px 0;
+  }
+
+  .sidebar:not(:hover):not(:focus-within) .nav-icon{
+    margin:0 auto;
+  }
+
+  .sidebar:not(:hover):not(:focus-within) .nav-item.active:before{
+    left:-10px;
+    top:9px;
+  }
+
+  .sidebar-spacer{flex:1;min-height:12px}
+
+  .sidebar-bottom{
+    width:100%;
+    min-width:0;
+    padding:10px 0 0;
+    margin:0;
+    border-top:1px solid rgba(255,255,255,.06);
+  }
+
+  .profile-button{
+    width:100%;
+    min-width:0;
+    height:48px;
+    margin:0;
+    padding:6px 8px;
+    gap:9px;
+    overflow:hidden;
+  }
+
+  .sidebar:not(:hover):not(:focus-within) .profile-button{
+    width:100%;
+    min-width:0;
+    justify-content:center;
+    padding:6px 0;
+    background:transparent;
+  }
+
+  .profile .avatar{
+    width:36px;
+    height:36px;
+    flex:0 0 36px;
+    margin:0;
+  }
+
+  .sidebar:not(:hover):not(:focus-within) .profile .avatar{
+    margin:0 auto;
+  }
+
+  .profile-menu{
+    left:0;
+    right:auto;
+    width:230px;
+  }
+
+  .sidebar:not(:hover):not(:focus-within) .profile-menu{
+    display:none;
+  }
+
+  .sidebar:not(:hover):not(:focus-within) .nav-item[data-tooltip]:after,
+  .sidebar:not(:hover):not(:focus-within) .profile-button[data-tooltip]:after{
+    left:80px;
+  }
+}
