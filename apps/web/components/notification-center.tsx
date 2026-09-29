@@ -2,6 +2,7 @@
 
 import { useEffect,useState } from 'react';
 import { usePathname,useRouter } from 'next/navigation';
+import { FiBell,FiCheck,FiArrowRight } from 'react-icons/fi';
 import { api } from '../lib/api';
 
 type Notification={
@@ -50,13 +51,13 @@ export function NotificationCenter(){
 
   return <div className="notification-center">
     <button className="notification-trigger" onClick={()=>{setOpen(!open);if(!open)load()}} aria-label="Notificações">
-      ♢
+      <FiBell/>
       {count>0&&<span>{count>99?'99+':count}</span>}
     </button>
     {open&&<div className="notification-popover">
       <div className="notification-popover-head">
         <div><strong>Notificações</strong><span>{count} não lida(s)</span></div>
-        {count>0&&<button onClick={markAll}>Marcar todas como lidas</button>}
+        {count>0&&<button onClick={markAll}><FiCheck/> Marcar todas como lidas</button>}
       </div>
       <div className="notification-popover-list">
         {items.map(item=><button key={item.id} className={'notification-mini '+(!item.readAt?'unread':'')} onClick={()=>openNotification(item)}>
@@ -65,7 +66,7 @@ export function NotificationCenter(){
         </button>)}
         {!items.length&&<div className="notification-empty">Nenhuma notificação por enquanto.</div>}
       </div>
-      <button className="notification-view-all" onClick={()=>{setOpen(false);router.push('/notificacoes')}}>Ver todas as notificações →</button>
+      <button className="notification-view-all" onClick={()=>{setOpen(false);router.push('/notificacoes')}}><span>Ver todas as notificações</span><FiArrowRight/></button>
     </div>}
   </div>
 }
