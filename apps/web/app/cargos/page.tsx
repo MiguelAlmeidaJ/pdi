@@ -5,7 +5,7 @@ import { api } from '../../lib/api';
 
 type Team={id:string;name:string};
 type Qualification={id:string;name:string;type:string;description?:string;team?:Team|null};
-type StepForm={code:string;label:string;order:number;salary:string;minTenureMonths:string;minExperienceMonths:string};
+type StepForm={code:string;label:string;order:number;salary:string;minTenureMonths:string;minExperienceMonths:string;qualificationIds:string[]};
 type RoleStep={id:string;code:string;label:string;salary:string;order:number;requirements:{qualificationId:string;required:boolean;qualification:Qualification}[]};
 type Role={id:string;name:string;description?:string;team:{id:string;name:string};steps:RoleStep[];_count:{users:number}};
 type StepRequirementResponse={id:string;requirements:{qualificationId:string;required:boolean;notes?:string;qualification:Qualification}[]};
@@ -20,7 +20,9 @@ export default function Cargos(){
   const [open,setOpen]=useState(false);
   const [saving,setSaving]=useState(false);
   const [form,setForm]=useState({name:'',description:'',teamId:''});
-  const [steps,setSteps]=useState<StepForm[]>([{code:'BASE',label:'Base',order:0,salary:'',minTenureMonths:'0',minExperienceMonths:'0'}]);
+  const [steps,setSteps]=useState<StepForm[]>([{code:'BASE',label:'Base',order:0,salary:'',minTenureMonths:'0',minExperienceMonths:'0',qualificationIds:[]}]);
+  const [createQualifications,setCreateQualifications]=useState<Qualification[]>([]);
+  const [createQualificationQuery,setCreateQualificationQuery]=useState('');
 
   const [requirementsRole,setRequirementsRole]=useState<Role|null>(null);
   const [selectedStepId,setSelectedStepId]=useState('');
@@ -43,20 +45,30 @@ export default function Cargos(){
     const next=stepOptions.find(code=>!steps.some(s=>s.code===code));
     if(!next)return;
     const order=steps.length;
-    setSteps([...steps,{code:next,label:next.replace('STEP_','Step ').replace('BASE','Base'),order,salary:'',minTenureMonths:'0',minExperienceMonths:'0'}]);
+    setSteps([...steps,{code:next,label:next.replace('STEP_','Step ').replace('BASE','Base'),order,salary:'',minTenureMonths:'0',minExperienceMonths:'0',qualificationIds:[]}]);
   }
   function updateStep(index:number,key:keyof StepForm,value:string|number){setSteps(steps.map((s,i)=>i===index?{...s,[key]:value}:s))}
   function removeStep(index:number){if(index===0)return;setSteps(steps.filter((_,i)=>i!==index).map((s,i)=>({...s,order:i})))}
+  function toggleCreateQualification(index:number,id:string){
+    setSteps(current=>current.map((step,i)=>i===index?{...step,qualificationIds:step.qualificationIds.includes(id)?step.qualificationIds.filter(x=>x!==id):[...step.qualificationIds,id]}:step));
+  }
+  async function changeCreateTeam(teamId:string){
+    setForm({...form,teamId});
+    setSteps(current=>current.map(step=>({...step,qualificationIds:[]})));
+    if(!teamId){setCreateQualifications([]);return}
+    try{setCreateQualifications(await api<Qualification[]>('/qualifications?teamId='+teamId))}
+    catch(e){setError(e instanceof Error?e.message:'Erro ao carregar qualificações do time')}
+  }
 
   async function create(){
     setSaving(true);setError('');
     try{
       await api('/roles',{method:'POST',body:JSON.stringify({
         name:form.name,description:form.description||undefined,teamId:form.teamId,
-        steps:steps.map((s,i)=>({code:s.code,label:s.label,order:i,salary:Number(s.salary),minTenureMonths:s.minTenureMonths===''?undefined:Number(s.minTenureMonths),minExperienceMonths:s.minExperienceMonths===''?undefined:Number(s.minExperienceMonths)}))
+        steps:steps.map((s,i)=>({code:s.code,label:s.label,order:i,salary:Number(s.salary),minTenureMonths:s.minTenureMonths===''?undefined:Number(s.minTenureMonths),minExperienceMonths:s.minExperienceMonths===''?undefined:Number(s.minExperienceMonths),requirements:s.qualificationIds.map(qualificationId=>({qualificationId}))}))
       })});
       setOpen(false);setForm({name:'',description:'',teamId:''});
-      setSteps([{code:'BASE',label:'Base',order:0,salary:'',minTenureMonths:'0',minExperienceMonths:'0'}]);
+      setSteps([{code:'BASE',label:'Base',order:0,salary:'',minTenureMonths:'0',minExperienceMonths:'0',qualificationIds:[]}]);setCreateQualifications([]);setCreateQualificationQuery('');
       await load();
     }catch(e){setError(e instanceof Error?e.message:'Erro ao criar cargo')}
     finally{setSaving(false)}
@@ -131,18 +143,33 @@ export default function Cargos(){
       <div className="modal-head"><div><p className="eyebrow">CARREIRA</p><h2>Novo cargo</h2><p>Configure o cargo e a trilha salarial por steps.</p></div><button className="modal-close" onClick={()=>setOpen(false)}>×</button></div>
       <div className="form-grid two">
         <label>Nome do cargo<input value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Ex.: Estagiário"/></label>
-        <label>Time<select value={form.teamId} onChange={e=>setForm({...form,teamId:e.target.value})}><option value="">Selecione...</option>{teams.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></label>
+        <label>Time<select value={form.teamId} onChange={e=>changeCreateTeam(e.target.value)}><option value="">Selecione...</option>{teams.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></label>
         <label className="span-2">Descrição<textarea value={form.description} onChange={e=>setForm({...form,description:e.target.value})} placeholder="Responsabilidades e objetivo do cargo"/></label>
       </div>
       <div className="steps-editor-head"><div><p className="eyebrow">STEPS</p><h3>Progressão do cargo</h3></div><button className="secondary-button" onClick={addStep} disabled={steps.length===5}>+ Adicionar step</button></div>
-      <div className="steps-editor">{steps.map((s,i)=><div className="step-editor" key={s.code}>
+      {form.teamId&&<div className="create-qualification-search"><input value={createQualificationQuery} onChange={e=>setCreateQualificationQuery(e.target.value)} placeholder="Buscar qualificação para adicionar aos steps..."/><span>{createQualifications.length} disponíveis no time</span></div>}
+      <div className="steps-editor">{steps.map((s,i)=><div className="step-editor step-editor-rich" key={s.code}>
         <div className="step-editor-index">{i+1}</div>
-        <div className="step-editor-fields">
-          <label>Código<select value={s.code} onChange={e=>updateStep(i,'code',e.target.value)} disabled={i===0}>{stepOptions.map(code=><option key={code} value={code} disabled={steps.some((x,j)=>j!==i&&x.code===code)}>{code}</option>)}</select></label>
-          <label>Rótulo<input value={s.label} onChange={e=>updateStep(i,'label',e.target.value)}/></label>
-          <label>Salário<input type="number" min="0" step="0.01" value={s.salary} onChange={e=>updateStep(i,'salary',e.target.value)} placeholder="0,00"/></label>
-          <label>Tempo empresa (meses)<input type="number" min="0" value={s.minTenureMonths} onChange={e=>updateStep(i,'minTenureMonths',e.target.value)}/></label>
-          <label>Experiência (meses)<input type="number" min="0" value={s.minExperienceMonths} onChange={e=>updateStep(i,'minExperienceMonths',e.target.value)}/></label>
+        <div className="step-editor-content">
+          <div className="step-editor-fields">
+            <label>Código<select value={s.code} onChange={e=>updateStep(i,'code',e.target.value)} disabled={i===0}>{stepOptions.map(code=><option key={code} value={code} disabled={steps.some((x,j)=>j!==i&&x.code===code)}>{code}</option>)}</select></label>
+            <label>Rótulo<input value={s.label} onChange={e=>updateStep(i,'label',e.target.value)}/></label>
+            <label>Salário<input type="number" min="0" step="0.01" value={s.salary} onChange={e=>updateStep(i,'salary',e.target.value)} placeholder="0,00"/></label>
+            <label>Tempo empresa (meses)<input type="number" min="0" value={s.minTenureMonths} onChange={e=>updateStep(i,'minTenureMonths',e.target.value)}/></label>
+            <label>Experiência (meses)<input type="number" min="0" value={s.minExperienceMonths} onChange={e=>updateStep(i,'minExperienceMonths',e.target.value)}/></label>
+          </div>
+          <div className="step-inline-requirements">
+            <div className="inline-requirements-head"><span>QUALIFICAÇÕES REQUERIDAS</span><b>{s.qualificationIds.length} selecionada(s)</b></div>
+            {!form.teamId?<div className="inline-requirements-empty">Selecione um time para carregar as qualificações disponíveis.</div>:
+              <div className="inline-qualification-grid">
+                {createQualifications.filter(q=>[q.name,q.description,typeLabel[q.type]].some(v=>v?.toLowerCase().includes(createQualificationQuery.toLowerCase()))).map(q=><label className={s.qualificationIds.includes(q.id)?'inline-qualification selected':'inline-qualification'} key={q.id}>
+                  <input type="checkbox" checked={s.qualificationIds.includes(q.id)} onChange={()=>toggleCreateQualification(i,q.id)}/>
+                  <span>{s.qualificationIds.includes(q.id)?'✓':''}</span>
+                  <div><strong>{q.name}</strong><small>{typeLabel[q.type]||q.type}</small></div>
+                </label>)}
+                {!createQualifications.length&&<div className="inline-requirements-empty">Este time ainda não possui qualificações cadastradas.</div>}
+              </div>}
+          </div>
         </div>
         {i>0&&<button className="remove-step" onClick={()=>removeStep(i)}>×</button>}
       </div>)}</div>
