@@ -50,7 +50,11 @@ export default function Qualificacoes(){
     setOpen(true);
   }
 
-  return <AppLayout title="Qualificações" description="Competências organizadas por time e usadas nos requisitos dos cargos.">
+  return <AppLayout
+    title="Qualificações"
+    description="Competências organizadas por time e usadas nos requisitos dos cargos."
+    action={<button className="primary-action action-with-icon" onClick={openCreate}><FiPlus/> Nova qualificação</button>}
+  >
     {error&&<div className="form-error">{error}</div>}
 
     <div className="qualifications-topbar">
@@ -58,7 +62,7 @@ export default function Qualificacoes(){
         <button className={!teamId?'filter-chip active':'filter-chip'} onClick={()=>setTeamId('')}>Todos os times</button>
         {teams.map(t=><button key={t.id} className={teamId===t.id?'filter-chip active':'filter-chip'} onClick={()=>setTeamId(t.id)}>{t.name}</button>)}
       </div>
-      {sessionUser&&(sessionUser.systemRole==='ADMIN'||sessionUser.systemRole==='MANAGER')&&<button className="primary-action action-with-icon" onClick={openCreate}><FiPlus/> Nova qualificação</button>}
+
     </div>
 
     <div className="table-panel">
