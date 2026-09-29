@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { AppLayout } from '../../components/app-layout';
 import { api } from '../../lib/api';
 import { useSessionUser } from '../../lib/use-session';
+import { FiPlus,FiSearch,FiX } from 'react-icons/fi';
 
 type Team={id:string;name:string};
 type Role={id:string;name:string;team:{id:string;name:string};steps:{id:string;code:string;label:string;salary:string;order:number}[]};
@@ -52,10 +53,10 @@ export default function Colaboradores(){
     finally{setSaving(false)}
   }
 
-  return <AppLayout title="Colaboradores" description="Acompanhe posição atual, carreira e desenvolvimento individual." action={sessionUser?.systemRole==='ADMIN'?<button className="primary-action" onClick={()=>setOpen(true)}>+ Novo colaborador</button>:undefined}>
+  return <AppLayout title="Colaboradores" description="Acompanhe posição atual, carreira e desenvolvimento individual." action={sessionUser?.systemRole==='ADMIN'?<button className="primary-action action-with-icon" onClick={()=>setOpen(true)}><FiPlus/> Novo colaborador</button>:undefined}>
     {error&&<div className="form-error">{error}</div>}
     {sessionUser?.systemRole==='MANAGER'&&<div className="scope-banner"><strong>Visão do gerente</strong><span>Você está vendo somente os colaboradores do seu time.</span></div>}
-    <section className="people-toolbar"><div><strong>{data.length}</strong><span> colaboradores cadastrados</span></div><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar por nome, cargo ou time..."/></section>
+    <section className="people-toolbar"><div><strong>{data.length}</strong><span> colaboradores cadastrados</span></div><label className="search-field"><FiSearch/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar por nome, cargo ou time..."/></label></section>
     <section className="people-cards">
       {filtered.map(user=>{
         const initials=user.name.split(' ').slice(0,2).map(p=>p[0]).join('').toUpperCase();
@@ -71,7 +72,7 @@ export default function Colaboradores(){
     {!filtered.length&&!error&&<div className="empty-state"><b>Nenhum colaborador encontrado</b><span>Ajuste a busca ou cadastre um novo colaborador.</span></div>}
 
     {open&&<div className="modal-backdrop"><div className="modal modal-lg">
-      <div className="modal-head"><div><p className="eyebrow">CADASTRO</p><h2>Novo colaborador</h2><p>Defina acesso, time e posição inicial no PDI.</p></div><button className="modal-close" onClick={()=>setOpen(false)}>×</button></div>
+      <div className="modal-head"><div><p className="eyebrow">CADASTRO</p><h2>Novo colaborador</h2><p>Defina acesso, time e posição inicial no PDI.</p></div><button className="modal-close" onClick={()=>setOpen(false)} aria-label="Fechar"><FiX/></button></div>
       <div className="form-grid two">
         <label>Nome<input value={form.name} onChange={e=>change('name',e.target.value)} placeholder="Nome completo"/></label>
         <label>E-mail<input type="email" value={form.email} onChange={e=>change('email',e.target.value)} placeholder="nome@empresa.com"/></label>
