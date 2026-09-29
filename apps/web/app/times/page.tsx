@@ -37,18 +37,26 @@ export default function Times(){
   >
     {error&&<div className="form-error">{error}</div>}
 
-    <section className="entity-grid team-grid">
-      {data.map(t=><article className="entity-card team-card" key={t.id}>
-        <div className="team-card-top">
-          <div className="entity-symbol">{t.name.slice(0,2).toUpperCase()}</div>
-          <span className="status-pill">Ativo</span>
-        </div>
-        <div className="entity-card-head"><div><h2>{t.name}</h2><p>{t.slug}</p></div></div>
-        <div className="entity-metrics">
-          <div><FiUsers/><strong>{t._count.users}</strong><span>Colaboradores</span></div>
-          <div><FiBriefcase/><strong>{t._count.roles}</strong><span>Cargos</span></div>
-        </div>
-      </article>)}
+    <section className="team-list-panel">
+      <div className="team-list-head">
+        <span>Time</span>
+        <span>Identificador</span>
+        <span>Colaboradores</span>
+        <span>Cargos</span>
+        <span>Status</span>
+      </div>
+      <div className="team-list-body">
+        {data.map(t=><article className="team-list-row" key={t.id}>
+          <div className="team-list-main">
+            <div className="entity-symbol compact">{t.name.slice(0,2).toUpperCase()}</div>
+            <div><strong>{t.name}</strong><span>Estrutura organizacional</span></div>
+          </div>
+          <div className="team-list-slug">{t.slug}</div>
+          <div className="team-list-metric"><FiUsers/><strong>{t._count.users}</strong><span>pessoa(s)</span></div>
+          <div className="team-list-metric"><FiBriefcase/><strong>{t._count.roles}</strong><span>cargo(s)</span></div>
+          <div><span className="status-pill">Ativo</span></div>
+        </article>)}
+      </div>
     </section>
 
     {!data.length&&!error&&<div className="empty-state modern"><div className="empty-icon"><FiUsers/></div><b>Nenhum time cadastrado</b><span>Crie o primeiro time para começar a estruturar o PDI.</span></div>}
