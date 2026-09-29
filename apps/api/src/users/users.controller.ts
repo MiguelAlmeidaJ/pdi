@@ -39,6 +39,24 @@ export class UsersController {
     return this.users.create(dto);
   }
 
+  @Roles(SystemRole.USER, SystemRole.MANAGER, SystemRole.ADMIN)
+  @Get('me')
+  getMe(@Request() request: AuthenticatedRequest) {
+    return this.users.findOne(request.user.sub);
+  }
+
+  @Roles(SystemRole.USER, SystemRole.MANAGER, SystemRole.ADMIN)
+  @Get('me/development')
+  getMyDevelopment(@Request() request: AuthenticatedRequest) {
+    return this.development.getDevelopment(request.user.sub);
+  }
+
+  @Roles(SystemRole.USER, SystemRole.MANAGER, SystemRole.ADMIN)
+  @Get('me/qualifications')
+  getMyQualifications(@Request() request: AuthenticatedRequest) {
+    return this.userQualifications.findAll(request.user.sub);
+  }
+
   @Roles(SystemRole.ADMIN, SystemRole.MANAGER)
   @Get(':id')
   findOne(@Param('id') id: string, @Request() request: AuthenticatedRequest) {
