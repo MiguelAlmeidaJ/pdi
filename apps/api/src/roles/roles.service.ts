@@ -11,7 +11,24 @@ export class RolesService {
   findAll(teamId?: string) {
     return this.prisma.role.findMany({
       where: teamId ? { teamId } : undefined,
-      include: { team: true, steps: { orderBy: { order: 'asc' } }, _count: { select: { users: true } } },
+      include: {
+        team: true,
+        steps: {
+          orderBy: { order: 'asc' },
+          include: {
+            requirements: {
+              where: { required: true },
+              include: {
+                qualification: {
+                  select: { id: true, name: true, type: true, description: true },
+                },
+              },
+              orderBy: { qualification: { name: 'asc' } },
+            },
+          },
+        },
+        _count: { select: { users: true } },
+      },
       orderBy: [{ team: { name: 'asc' } }, { name: 'asc' }],
     });
   }
