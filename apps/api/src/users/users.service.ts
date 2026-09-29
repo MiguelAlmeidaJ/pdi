@@ -222,6 +222,29 @@ export class UsersService {
 
     return result;
   }
+  async changeOwnPassword(userId: string, currentPassword: string, newPassword: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, passwordHash: true, active: true },
+    });
+    if (!user || !user.active) throw new NotFoundException('Usuário não encontrado');
+
+    const valid = await argon2.verify(user.passwordHash, currentPassword);
+    if (!valid) throw new BadRequestException('Senha atual incorreta');
+
+    if (currentPassword === newPassword) {
+      throw new BadRequestException('A nova senha deve ser diferente da senha atual');
+    }
+
+    const passwordHash = await argon2.hash(newPassword);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash },
+    });
+
+    return { success: true };
+  }
+
   async assertCanAccessUser(
     actor: { sub: string; systemRole: SystemRole },
     targetUserId: string,
