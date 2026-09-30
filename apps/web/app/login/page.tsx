@@ -1,28 +1,89 @@
 'use client';
-import { FormEvent, useState } from 'react';
+
+import { FormEvent,useEffect,useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { FiEye,FiEyeOff,FiLock,FiMail } from 'react-icons/fi';
 import { api } from '../../lib/api';
 import { TrilhaBrand } from '../../components/trilha-brand';
 
-type LoginResponse = { accessToken: string; user: { id:string; name:string; email:string; systemRole:string } };
+type LoginResponse={accessToken:string;user:{id:string;name:string;email:string;systemRole:string}};
 
-export default function LoginPage() {
-  const router = useRouter();
+export default function LoginPage(){
+  const router=useRouter();
   const [email,setEmail]=useState('');
   const [password,setPassword]=useState('');
+  const [remember,setRemember]=useState(true);
+  const [showPassword,setShowPassword]=useState(false);
   const [error,setError]=useState('');
   const [loading,setLoading]=useState(false);
 
-  async function submit(e:FormEvent){
-    e.preventDefault(); setError(''); setLoading(true);
-    try {
-      const data=await api<LoginResponse>('/auth/login',{method:'POST',body:JSON.stringify({email,password})});
+  useEffect(()=>{
+    const remembered=localStorage.getItem('trilha_login_email');
+    if(remembered)setEmail(remembered);
+  },[]);
+
+  async function submit(event:FormEvent){
+    event.preventDefault();
+    setError('');
+    setLoading(true);
+    try{
+      const data=await api<LoginResponse>('/auth/login',{
+        method:'POST',
+        body:JSON.stringify({email,password}),
+      });
       localStorage.setItem('pdi_token',data.accessToken);
       localStorage.setItem('pdi_user',JSON.stringify(data.user));
+      if(remember)localStorage.setItem('trilha_login_email',email);
+      else localStorage.removeItem('trilha_login_email');
       router.push(data.user.systemRole==='USER'?'/meu-pdi':'/');
-    } catch(e){ setError(e instanceof Error?e.message:'Não foi possível entrar'); }
-    finally{setLoading(false)}
+    }catch(e){
+      setError(e instanceof Error?e.message:'Não foi possível entrar');
+    }finally{
+      setLoading(false);
+    }
   }
 
-  return <main className="login-page"><section className="login-brand"><div className="login-copy"><div className="login-logo"><TrilhaBrand theme="dark"/></div><p className="eyebrow light">EVOLUÇÃO PROFISSIONAL COM CLAREZA</p><h1>Seu próximo passo,<br/>mais claro.</h1><p>Transforme cargos, níveis, qualificações e resultados em uma trilha de evolução clara para cada pessoa.</p><div className="login-feature"><b>01</b><span>Visualize o próximo passo da carreira</span></div><div className="login-feature"><b>02</b><span>Acompanhe requisitos e qualificações</span></div><div className="login-feature"><b>03</b><span>Conduza promoções com critérios objetivos</span></div></div></section><section className="login-form-wrap"><form className="login-card" onSubmit={submit}><p className="eyebrow">BEM-VINDO</p><h2>Acesse sua conta</h2><p>Entre com as credenciais cadastradas na Trilha.</p><label>E-mail<input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="voce@empresa.com" required /></label><label>Senha<input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••••••" minLength={8} required /></label>{error&&<div className="form-error">{error}</div>}<button className="primary-button login-button" disabled={loading}>{loading?'Entrando...':'Entrar na Trilha'}</button><small>O acesso e as permissões são definidos pelo administrador.</small></form></section></main>;
+  return <main className="helpdesk-login-page">
+    <div className="helpdesk-login-overlay"/>
+    <section className="helpdesk-login-shell">
+      <div className="helpdesk-login-brand">
+        <div className="helpdesk-brand-logo"><TrilhaBrand theme="dark"/></div>
+        <div className="helpdesk-brand-copy">
+          <h1>Evolução profissional com clareza</h1>
+          <p>Acompanhe cada etapa da carreira, requisitos e próximos passos em uma experiência simples e objetiva.</p>
+        </div>
+        <div className="helpdesk-brand-trail" aria-hidden="true">
+          <span/><i/><span/><i/><span/>
+        </div>
+      </div>
+
+      <div className="helpdesk-login-form-panel">
+        <form className="helpdesk-login-card" onSubmit={submit}>
+          <div className="helpdesk-login-heading">
+            <h2>Acesse sua conta</h2>
+            <p>Bem-vindo de volta à Trilha.</p>
+          </div>
+
+          <label className="helpdesk-field">
+            <span>E-mail</span>
+            <div><FiMail/><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="voce@empresa.com" autoComplete="email" required/></div>
+          </label>
+
+          <label className="helpdesk-field">
+            <span>Senha</span>
+            <div><FiLock/><input type={showPassword?'text':'password'} value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••••••" minLength={8} autoComplete="current-password" required/><button type="button" onClick={()=>setShowPassword(value=>!value)} aria-label={showPassword?'Ocultar senha':'Mostrar senha'}>{showPassword?<FiEyeOff/>:<FiEye/>}</button></div>
+          </label>
+
+          <div className="helpdesk-login-options">
+            <label className="remember-check"><input type="checkbox" checked={remember} onChange={e=>setRemember(e.target.checked)}/><span>Lembrar e-mail</span></label>
+          </div>
+
+          {error&&<div className="form-error">{error}</div>}
+
+          <button className="helpdesk-login-button" disabled={loading}>{loading?'Entrando...':'Entrar'}</button>
+          <small>O acesso e as permissões são definidos pelo administrador.</small>
+        </form>
+      </div>
+    </section>
+  </main>;
 }
