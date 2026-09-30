@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1110"/>
+      <stop offset=".5" stop-color="#171b1d"/>
+      <stop offset="1" stop-color="#0a0d0e"/>
+    </linearGradient>
+    <linearGradient id="facet1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#252b2e" stop-opacity=".86"/>
+      <stop offset="1" stop-color="#101416" stop-opacity=".9"/>
+    </linearGradient>
+    <linearGradient id="facet2" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#31373a" stop-opacity=".62"/>
+      <stop offset="1" stop-color="#111517" stop-opacity=".9"/>
+    </linearGradient>
+    <filter id="blur"><feGaussianBlur stdDeviation="30"/></filter>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <g opacity=".9">
+    <polygon points="0,0 430,0 260,255 0,360" fill="url(#facet1)"/>
+    <polygon points="430,0 910,0 770,210 260,255" fill="url(#facet2)"/>
+    <polygon points="910,0 1430,0 1290,230 770,210" fill="#151a1c"/>
+    <polygon points="1430,0 1920,0 1920,300 1290,230" fill="url(#facet1)"/>
+    <polygon points="0,360 260,255 510,520 0,650" fill="#111517"/>
+    <polygon points="260,255 770,210 710,555 510,520" fill="url(#facet1)"/>
+    <polygon points="770,210 1290,230 1120,530 710,555" fill="url(#facet2)"/>
+    <polygon points="1290,230 1920,300 1920,600 1120,530" fill="#101416"/>
+    <polygon points="0,650 510,520 650,900 0,1080" fill="url(#facet2)"/>
+    <polygon points="510,520 710,555 1040,760 650,900" fill="#161b1d"/>
+    <polygon points="710,555 1120,530 1390,820 1040,760" fill="url(#facet1)"/>
+    <polygon points="1120,530 1920,600 1920,1080 1390,820" fill="url(#facet2)"/>
+    <polygon points="650,900 1040,760 1210,1080 410,1080" fill="#0f1315"/>
+    <polygon points="1040,760 1390,820 1640,1080 1210,1080" fill="#171c1e"/>
+  </g>
+  <circle cx="1460" cy="240" r="300" fill="#166534" opacity=".10" filter="url(#blur)"/>
+  <circle cx="390" cy="920" r="280" fill="#22c55e" opacity=".06" filter="url(#blur)"/>
+</svg>
