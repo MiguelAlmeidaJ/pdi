@@ -85,6 +85,7 @@ export default function MeuPdi(){
   const [submissionNotes,setSubmissionNotes]=useState('');
   const [submitting,setSubmitting]=useState(false);
   const [notifications,setNotifications]=useState<Notification[]>([]);
+  const [learningFilter,setLearningFilter]=useState<'TODO'|'REVIEW'|'DONE'>('TODO');
 
   async function load(){
     try{
@@ -142,8 +143,12 @@ export default function MeuPdi(){
   const missing=Math.max(0,dev.progress.required-dev.progress.completed);
   const recentNotifications=notifications.slice(0,2);
   const courseRequirements=dev.requirements.filter(requirement=>requirement.source==='QUALIFICATION'&&requirement.type==='COURSE');
-  const pendingCourses=courseRequirements.filter(requirement=>!requirement.met);
+  const todoCourses=courseRequirements.filter(requirement=>!requirement.met&&requirement.status!=='AWAITING_REVIEW');
+  const reviewCourses=courseRequirements.filter(requirement=>!requirement.met&&requirement.status==='AWAITING_REVIEW');
   const completedCourses=courseRequirements.filter(requirement=>requirement.met);
+  const visibleCourses=learningFilter==='TODO'?todoCourses:learningFilter==='REVIEW'?reviewCourses:completedCourses;
+  const nonCourseRequirements=dev.requirements.filter(requirement=>!(requirement.source==='QUALIFICATION'&&requirement.type==='COURSE'));
+  const nonCourseCompleted=nonCourseRequirements.filter(requirement=>requirement.met).length;
 
   function providerLabel(url:string){
     const value=url.toLowerCase();
@@ -221,59 +226,83 @@ export default function MeuPdi(){
       </div>
     </section>
 
-    {courseRequirements.length>0&&<section className="panel trail-courses-card">
-      <div className="panel-head">
+    {courseRequirements.length>0&&<section className="panel trail-learning-library">
+      <div className="trail-learning-head">
         <div>
-          <p className="eyebrow">CURSOS DA SUA TRILHA</p>
-          <h2>O que você precisa estudar</h2>
-          <p className="panel-description">Acesse os cursos e materiais vinculados às qualificações exigidas para o próximo step.</p>
+          <p className="eyebrow">BIBLIOTECA DE APRENDIZADO</p>
+          <h2>Cursos da sua Trilha</h2>
+          <p>Acompanhe o que precisa estudar, o que já enviou para avaliação e o que foi concluído.</p>
         </div>
-        <span className="trail-course-summary">{pendingCourses.length} pendente(s)</span>
+        <div className="trail-learning-summary">
+          <div><strong>{courseRequirements.length}</strong><span>Total</span></div>
+          <div><strong>{todoCourses.length}</strong><span>A fazer</span></div>
+          <div><strong>{reviewCourses.length}</strong><span>Em avaliação</span></div>
+          <div><strong>{completedCourses.length}</strong><span>Concluídos</span></div>
+        </div>
       </div>
 
-      <div className="trail-course-grid">
-        {pendingCourses.map(course=><article className="trail-course-card" key={course.key}>
-          <div className="trail-course-icon"><FiBookOpen/></div>
-          <div className="trail-course-copy">
-            <div className="trail-course-title">
-              <strong>{course.name}</strong>
-              <span>Pendente</span>
-            </div>
-            <p>{course.description||course.notes||'Curso necessário para avançar para o próximo step.'}</p>
+      <div className="trail-learning-tabs">
+        <button className={learningFilter==='TODO'?'active':''} onClick={()=>setLearningFilter('TODO')}>
+          <span>A fazer</span><em>{todoCourses.length}</em>
+        </button>
+        <button className={learningFilter==='REVIEW'?'active':''} onClick={()=>setLearningFilter('REVIEW')}>
+          <span>Em avaliação</span><em>{reviewCourses.length}</em>
+        </button>
+        <button className={learningFilter==='DONE'?'active':''} onClick={()=>setLearningFilter('DONE')}>
+          <span>Concluídos</span><em>{completedCourses.length}</em>
+        </button>
+      </div>
 
-            <div className="trail-course-links">
-              {(course.links||[]).map(link=><a href={link.url} target="_blank" rel="noreferrer" key={link.url+link.title}>
-                <FiPlayCircle/>
-                <div><strong>{link.title}</strong><span>{providerLabel(link.url)}</span></div>
-                <FiExternalLink/>
-              </a>)}
-              {!course.links?.length&&course.referenceUrl&&<a href={course.referenceUrl} target="_blank" rel="noreferrer">
-                <FiPlayCircle/>
-                <div><strong>Abrir material do curso</strong><span>{providerLabel(course.referenceUrl)}</span></div>
-                <FiExternalLink/>
-              </a>}
+      <div className="trail-learning-list">
+        {visibleCourses.map(course=>{
+          const status=requirementStatus(course);
+          const links=(course.links||[]);
+          return <article className={'trail-learning-item '+status.tone} key={course.key}>
+            <div className="trail-learning-icon">
+              {course.met?<FiCheck/>:course.status==='AWAITING_REVIEW'?<FiClock/>:<FiBookOpen/>}
             </div>
-          </div>
-          <button className="trail-evidence-button" onClick={()=>openSubmission(course)}><FiSend/> Enviar evidência</button>
-        </article>)}
 
-        {completedCourses.map(course=><article className="trail-course-card completed" key={course.key}>
-          <div className="trail-course-icon"><FiCheck/></div>
-          <div className="trail-course-copy">
-            <div className="trail-course-title">
-              <strong>{course.name}</strong>
-              <span>Concluído</span>
+            <div className="trail-learning-content">
+              <div className="trail-learning-title">
+                <div>
+                  <strong>{course.name}</strong>
+                  <span>{course.description||course.notes||'Curso necessário para avançar para o próximo step.'}</span>
+                </div>
+                <em>{status.label}</em>
+              </div>
+
+              <div className="trail-learning-links">
+                {links.map(link=><a href={link.url} target="_blank" rel="noreferrer" key={link.url+link.title}>
+                  <span className="trail-learning-provider-icon"><FiPlayCircle/></span>
+                  <div><strong>{link.title}</strong><small>{providerLabel(link.url)}</small></div>
+                  <FiExternalLink/>
+                </a>)}
+                {!links.length&&course.referenceUrl&&<a href={course.referenceUrl} target="_blank" rel="noreferrer">
+                  <span className="trail-learning-provider-icon"><FiPlayCircle/></span>
+                  <div><strong>Abrir material do curso</strong><small>{providerLabel(course.referenceUrl)}</small></div>
+                  <FiExternalLink/>
+                </a>}
+                {!links.length&&!course.referenceUrl&&<div className="trail-learning-no-link"><FiBookOpen/><span>Nenhum material de referência foi cadastrado para este curso.</span></div>}
+              </div>
+
+              {course.status==='AWAITING_REVIEW'&&<div className="trail-learning-review-note">
+                <FiClock/>
+                <span>Você já enviou uma evidência. Seu gestor precisa avaliá-la antes da conclusão.</span>
+              </div>}
             </div>
-            <p>{course.description||'Curso concluído e validado na sua Trilha.'}</p>
-            <div className="trail-course-links">
-              {(course.links||[]).map(link=><a href={link.url} target="_blank" rel="noreferrer" key={link.url+link.title}>
-                <FiBookOpen/>
-                <div><strong>{link.title}</strong><span>{providerLabel(link.url)}</span></div>
-                <FiExternalLink/>
-              </a>)}
+
+            <div className="trail-learning-actions">
+              {!course.met&&<button className="trail-evidence-button" onClick={()=>openSubmission(course)}><FiSend/>{course.status==='AWAITING_REVIEW'?'Atualizar evidência':'Enviar evidência'}</button>}
+              {course.evidenceUrl&&<a href={course.evidenceUrl} target="_blank" rel="noreferrer"><FiExternalLink/> Evidência</a>}
             </div>
-          </div>
-        </article>)}
+          </article>
+        })}
+
+        {!visibleCourses.length&&<div className="trail-learning-empty">
+          <span className="trail-learning-empty-icon">{learningFilter==='DONE'?<FiCheck/>:learningFilter==='REVIEW'?<FiClock/>:<FiBookOpen/>}</span>
+          <strong>{learningFilter==='DONE'?'Nenhum curso concluído ainda':learningFilter==='REVIEW'?'Nenhum curso em avaliação':'Nenhum curso pendente'}</strong>
+          <p>{learningFilter==='DONE'?'Os cursos aprovados pelo seu gestor aparecerão aqui.':learningFilter==='REVIEW'?'Quando você enviar uma evidência, o curso aparecerá nesta etapa.':'Você não possui cursos aguardando conclusão neste momento.'}</p>
+        </div>}
       </div>
     </section>}
 
@@ -281,11 +310,11 @@ export default function MeuPdi(){
       <article className="panel trail-requirements-card">
         <div className="panel-head">
           <div><p className="eyebrow">PRÓXIMO PASSO</p><h2>Requisitos para evoluir</h2><p className="panel-description">Conclua os requisitos abaixo para ficar pronto para a próxima movimentação.</p></div>
-          <span className="trail-requirement-count">{dev.progress.completed}/{dev.progress.required}</span>
+          <span className="trail-requirement-count">{nonCourseCompleted}/{nonCourseRequirements.length}</span>
         </div>
 
         <div className="trail-requirements">
-          {dev.requirements.map(requirement=>{
+          {nonCourseRequirements.map(requirement=>{
             const status=requirementStatus(requirement);
             return <div className={'trail-requirement '+status.tone} key={requirement.key}>
               <div className="trail-requirement-check">{requirement.met?<FiCheck/>:requirement.status==='AWAITING_REVIEW'?<FiClock/>:<span/>}</div>
@@ -303,7 +332,7 @@ export default function MeuPdi(){
               {requirement.source==='QUALIFICATION'&&requirement.status!=='COMPLETED'&&<button className="trail-evidence-button" onClick={()=>openSubmission(requirement)}><FiSend/>{requirement.status==='AWAITING_REVIEW'?'Atualizar':'Enviar evidência'}</button>}
             </div>
           })}
-          {!dev.requirements.length&&<div className="empty-state compact"><b>Nenhum requisito pendente</b><span>{dev.careerComplete?'Você chegou ao último step da trilha.':'Seu próximo step ainda não possui requisitos cadastrados.'}</span></div>}
+          {!nonCourseRequirements.length&&<div className="empty-state compact"><b>Nenhum outro requisito</b><span>{courseRequirements.length?'Os cursos necessários estão organizados na Biblioteca de Aprendizado acima.':dev.careerComplete?'Você chegou ao último step da trilha.':'Seu próximo step ainda não possui requisitos cadastrados.'}</span></div>}
         </div>
       </article>
 
