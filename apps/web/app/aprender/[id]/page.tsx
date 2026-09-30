@@ -184,7 +184,7 @@ export default function AprenderCurso(){
     }
   }
 
-  async function sendHeartbeat(){
+  async function sendHeartbeat(playingOverride?:boolean,visibleOverride?:boolean){
     const video=videoRef.current;
     const sessionId=sessionRef.current;
     if(!video||!sessionId)return;
@@ -194,8 +194,8 @@ export default function AprenderCurso(){
         method:'PUT',
         body:JSON.stringify({
           position:video.currentTime,
-          playing:!video.paused&&!video.ended,
-          visible:document.visibilityState==='visible',
+          playing:playingOverride??(!video.paused&&!video.ended),
+          visible:visibleOverride??document.visibilityState==='visible',
           playbackRate:video.playbackRate,
         }),
       });
@@ -223,8 +223,8 @@ export default function AprenderCurso(){
   useEffect(()=>{
     function visibility(){
       if(document.visibilityState!=='visible'){
-        videoRef.current?.pause();
-        void sendHeartbeat();
+        const wasPlaying=Boolean(videoRef.current&&!videoRef.current.paused);
+        void sendHeartbeat(wasPlaying,true).finally(()=>videoRef.current?.pause());
       }
     }
     document.addEventListener('visibilitychange',visibility);
@@ -263,8 +263,8 @@ export default function AprenderCurso(){
       video.playbackRate=1;
       await video.play();
     }else{
+      await sendHeartbeat(true,true);
       video.pause();
-      await sendHeartbeat();
     }
   }
 
@@ -300,7 +300,7 @@ export default function AprenderCurso(){
                 onRateChange={onRateChange}
                 onPlay={()=>setPlaying(true)}
                 onPause={()=>setPlaying(false)}
-                onEnded={()=>{setPlaying(false);void sendHeartbeat()}}
+                onEnded={()=>{setPlaying(false);void sendHeartbeat(true,true)}}
               />
             : <div className="course-video-placeholder"><FiVideoFallback/><strong>{selectedLesson?'Vídeo ainda não está pronto':'Selecione uma aula'}</strong></div>}
 
