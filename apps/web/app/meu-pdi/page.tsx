@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect,useState } from 'react';
 import {
   FiArrowRight,
@@ -54,6 +55,7 @@ type Requirement={
   evaluator?:{id:string;name:string}|null;
   links?:{id?:string;title:string;url:string;order?:number}[];
   referenceUrl?:string|null;
+  internalCourse?:{id:string;title:string;active:boolean}|null;
 };
 
 type Development={
@@ -272,6 +274,11 @@ export default function MeuPdi(){
               </div>
 
               <div className="trail-learning-links">
+                {course.internalCourse?.active&&<Link href={'/aprender/'+course.internalCourse.id} className="trail-learning-internal-course">
+                  <span className="trail-learning-provider-icon"><FiPlayCircle/></span>
+                  <div><strong>Abrir curso na Trilha</strong><small>Progresso acompanhado automaticamente</small></div>
+                  <FiArrowRight/>
+                </Link>}
                 {links.map(link=><a href={link.url} target="_blank" rel="noreferrer" key={link.url+link.title}>
                   <span className="trail-learning-provider-icon"><FiPlayCircle/></span>
                   <div><strong>{link.title}</strong><small>{providerLabel(link.url)}</small></div>
@@ -292,7 +299,8 @@ export default function MeuPdi(){
             </div>
 
             <div className="trail-learning-actions">
-              {!course.met&&<button className="trail-evidence-button" onClick={()=>openSubmission(course)}><FiSend/>{course.status==='AWAITING_REVIEW'?'Atualizar evidência':'Enviar evidência'}</button>}
+              {!course.met&&!course.internalCourse?.active&&<button className="trail-evidence-button" onClick={()=>openSubmission(course)}><FiSend/>{course.status==='AWAITING_REVIEW'?'Atualizar evidência':'Enviar evidência'}</button>}
+              {!course.met&&course.internalCourse?.active&&<Link className="trail-start-course-button" href={'/aprender/'+course.internalCourse.id}><FiPlayCircle/> Estudar agora</Link>}
               {course.evidenceUrl&&<a href={course.evidenceUrl} target="_blank" rel="noreferrer"><FiExternalLink/> Evidência</a>}
             </div>
           </article>
