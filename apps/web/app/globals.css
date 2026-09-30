@@ -4150,3 +4150,374 @@ a{color:inherit}
     justify-self:start;
   }
 }
+
+
+/* ===== Learning library ===== */
+.trail-learning-library{
+  margin-bottom:14px;
+  overflow:hidden;
+}
+.trail-learning-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:18px;
+}
+.trail-learning-head h2{
+  margin:4px 0 4px;
+  font-size:17px;
+}
+.trail-learning-head>div:first-child>p:last-child{
+  margin:0;
+  color:var(--muted);
+  font-size:9px;
+  line-height:1.5;
+}
+.trail-learning-summary{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(70px,1fr));
+  gap:7px;
+  min-width:330px;
+}
+.trail-learning-summary>div{
+  padding:9px 10px;
+  border:1px solid var(--border);
+  border-radius:9px;
+  background:#fbfcfd;
+}
+.trail-learning-summary strong,
+.trail-learning-summary span{display:block}
+.trail-learning-summary strong{
+  font-size:12px;
+  color:var(--text-secondary);
+}
+.trail-learning-summary span{
+  margin-top:2px;
+  font-size:7px;
+  color:var(--muted-light);
+}
+
+.trail-learning-tabs{
+  display:flex;
+  gap:7px;
+  margin:16px 0 10px;
+  padding-bottom:10px;
+  border-bottom:1px solid #edf0f4;
+}
+.trail-learning-tabs button{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  min-height:32px;
+  padding:0 10px;
+  border:1px solid var(--border);
+  border-radius:9px;
+  background:#fff;
+  color:#64748b;
+  font-size:8px;
+  font-weight:700;
+  cursor:pointer;
+}
+.trail-learning-tabs button em{
+  min-width:18px;
+  height:18px;
+  padding:0 5px;
+  display:grid;
+  place-items:center;
+  border-radius:999px;
+  background:#f1f5f9;
+  color:#64748b;
+  font-size:7px;
+  font-style:normal;
+}
+.trail-learning-tabs button.active{
+  border-color:#bbf7d0;
+  background:#f0fdf4;
+  color:#166534;
+}
+.trail-learning-tabs button.active em{
+  background:#dcfce7;
+  color:#166534;
+}
+
+.trail-learning-list{
+  display:grid;
+  gap:9px;
+}
+.trail-learning-item{
+  display:grid;
+  grid-template-columns:42px minmax(0,1fr) auto;
+  gap:12px;
+  align-items:start;
+  padding:13px;
+  border:1px solid var(--border);
+  border-radius:11px;
+  background:#fff;
+}
+.trail-learning-item.review{
+  border-color:#fde68a;
+  background:#fffdf5;
+}
+.trail-learning-item.done{
+  border-color:#bbf7d0;
+  background:#f7fff9;
+}
+.trail-learning-item.rejected{
+  border-color:#fecaca;
+  background:#fffafa;
+}
+
+.trail-learning-icon{
+  width:40px;
+  height:40px;
+  display:grid;
+  place-items:center;
+  border-radius:10px;
+  background:#f0fdf4;
+  color:#166534;
+}
+.trail-learning-icon svg{
+  width:17px;
+  height:17px;
+}
+.trail-learning-item.review .trail-learning-icon{
+  background:#fffbeb;
+  color:#d97706;
+}
+.trail-learning-item.done .trail-learning-icon{
+  background:#dcfce7;
+  color:#16a34a;
+}
+.trail-learning-item.rejected .trail-learning-icon{
+  background:#fef2f2;
+  color:#dc2626;
+}
+
+.trail-learning-content{
+  min-width:0;
+}
+.trail-learning-title{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+}
+.trail-learning-title>div{
+  min-width:0;
+}
+.trail-learning-title strong,
+.trail-learning-title span{
+  display:block;
+}
+.trail-learning-title strong{
+  color:var(--text-secondary);
+  font-size:10px;
+  line-height:1.35;
+}
+.trail-learning-title span{
+  margin-top:3px;
+  color:var(--muted);
+  font-size:8px;
+  line-height:1.45;
+}
+.trail-learning-title em{
+  flex:0 0 auto;
+  padding:4px 7px;
+  border-radius:999px;
+  background:#f1f5f9;
+  color:#64748b;
+  font-size:6px;
+  font-style:normal;
+  font-weight:800;
+}
+.trail-learning-item.review .trail-learning-title em{
+  background:#fffbeb;
+  color:#b45309;
+}
+.trail-learning-item.done .trail-learning-title em{
+  background:#dcfce7;
+  color:#166534;
+}
+.trail-learning-item.rejected .trail-learning-title em{
+  background:#fef2f2;
+  color:#b91c1c;
+}
+
+.trail-learning-links{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:7px;
+  margin-top:10px;
+}
+.trail-learning-links>a{
+  display:grid;
+  grid-template-columns:28px minmax(0,1fr) 14px;
+  gap:8px;
+  align-items:center;
+  min-width:0;
+  padding:8px 9px;
+  border:1px solid #dfe7e2;
+  border-radius:9px;
+  background:#fff;
+  color:inherit;
+  text-decoration:none;
+  transition:border-color .14s ease,background .14s ease,transform .14s ease;
+}
+.trail-learning-links>a:hover{
+  border-color:#86efac;
+  background:#f7fff9;
+  transform:translateY(-1px);
+}
+.trail-learning-provider-icon{
+  width:26px;
+  height:26px;
+  display:grid;
+  place-items:center;
+  border-radius:7px;
+  background:#f0fdf4;
+  color:#16a34a;
+}
+.trail-learning-provider-icon svg{
+  width:13px;
+  height:13px;
+}
+.trail-learning-links>a>svg:last-child{
+  width:10px;
+  height:10px;
+  color:#94a3b8;
+}
+.trail-learning-links strong,
+.trail-learning-links small{display:block}
+.trail-learning-links strong{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:#334155;
+  font-size:8px;
+}
+.trail-learning-links small{
+  margin-top:2px;
+  color:#94a3b8;
+  font-size:7px;
+}
+.trail-learning-no-link{
+  grid-column:1/-1;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  padding:8px 9px;
+  border:1px dashed var(--border);
+  border-radius:9px;
+  color:#94a3b8;
+  font-size:8px;
+}
+.trail-learning-no-link svg{
+  width:13px;
+  height:13px;
+}
+
+.trail-learning-review-note{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin-top:8px;
+  color:#b45309;
+  font-size:7px;
+}
+.trail-learning-review-note svg{
+  width:11px;
+  height:11px;
+}
+
+.trail-learning-actions{
+  display:grid;
+  gap:7px;
+  justify-items:end;
+  align-self:center;
+}
+.trail-learning-actions>a{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  color:#64748b;
+  text-decoration:none;
+  font-size:7px;
+  font-weight:700;
+}
+.trail-learning-actions>a:hover{
+  color:#166534;
+}
+.trail-learning-actions>a svg{
+  width:10px;
+  height:10px;
+}
+
+.trail-learning-empty{
+  min-height:150px;
+  display:grid;
+  place-items:center;
+  align-content:center;
+  gap:6px;
+  padding:24px;
+  border:1px dashed var(--border);
+  border-radius:11px;
+  background:#fbfcfd;
+  text-align:center;
+}
+.trail-learning-empty-icon{
+  width:36px;
+  height:36px;
+  display:grid;
+  place-items:center;
+  border-radius:10px;
+  background:#f0fdf4;
+  color:#166534;
+}
+.trail-learning-empty-icon svg{
+  width:15px;
+  height:15px;
+}
+.trail-learning-empty strong{
+  color:var(--text-secondary);
+  font-size:9px;
+}
+.trail-learning-empty p{
+  max-width:360px;
+  margin:0;
+  color:var(--muted);
+  font-size:8px;
+  line-height:1.45;
+}
+
+@media(max-width:1050px){
+  .trail-learning-head{
+    flex-direction:column;
+  }
+  .trail-learning-summary{
+    width:100%;
+    min-width:0;
+  }
+}
+@media(max-width:760px){
+  .trail-learning-summary{
+    grid-template-columns:repeat(2,1fr);
+  }
+  .trail-learning-tabs{
+    overflow-x:auto;
+    scrollbar-width:none;
+  }
+  .trail-learning-tabs::-webkit-scrollbar{display:none}
+  .trail-learning-tabs button{
+    flex:0 0 auto;
+  }
+  .trail-learning-item{
+    grid-template-columns:36px minmax(0,1fr);
+  }
+  .trail-learning-actions{
+    grid-column:2;
+    justify-items:start;
+  }
+  .trail-learning-links{
+    grid-template-columns:1fr;
+  }
+}
