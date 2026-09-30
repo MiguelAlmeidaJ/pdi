@@ -276,6 +276,12 @@ export class LearningService {
     await this.assertCanManageCourse(actor, lesson.module.course.qualification?.teamId ?? null);
 
     if (!file?.path) throw new BadRequestException('Arquivo de vídeo não enviado');
+    if (!file.mimetype?.startsWith('video/')) {
+      try { unlinkSync(file.path); } catch {}
+      throw new BadRequestException('Envie um arquivo de vídeo válido');
+    }
+
+    const previousAssetKey = lesson.videoAssetKey;
 
     await this.prisma.courseLesson.update({
       where: { id: lessonId },
@@ -285,7 +291,7 @@ export class LearningService {
       },
     });
 
-    void this.processVideo(lessonId, file.path).catch(() => undefined);
+    void this.processVideo(lessonId, file.path, previousAssetKey).catch(() => undefined);
 
     return {
       lessonId,
@@ -294,7 +300,7 @@ export class LearningService {
     };
   }
 
-  private async processVideo(lessonId: string, inputPath: string) {
+  private async processVideo(lessonId: string, inputPath: string, previousAssetKey?: string | null) {
     const assetKey = randomBytes(12).toString('hex');
     const targetDir = join(this.storageRoot, lessonId, assetKey);
     mkdirSync(targetDir, { recursive: true });
@@ -360,6 +366,10 @@ export class LearningService {
           processingError: null,
         },
       });
+
+      if (previousAssetKey && previousAssetKey !== assetKey) {
+        rmSync(join(this.storageRoot, lessonId, previousAssetKey), { recursive: true, force: true });
+      }
     } catch (error) {
       rmSync(targetDir, { recursive: true, force: true });
       await this.prisma.courseLesson.update({
@@ -868,17 +878,17 @@ export class LearningService {
       select: { id: true },
     });
 
-    const required =
-      nextStep &&
-      (await this.prisma.roleStepQualification.findUnique({
-        where: {
-          roleStepId_qualificationId: {
-            roleStepId: nextStep.id,
-            qualificationId: course.qualificationId,
+    const required = nextStep
+      ? await this.prisma.roleStepQualification.findUnique({
+          where: {
+            roleStepId_qualificationId: {
+              roleStepId: nextStep.id,
+              qualificationId: course.qualificationId,
+            },
           },
-        },
-        select: { required: true },
-      }));
+          select: { required: true },
+        })
+      : null;
 
     if (!alreadyCompleted && !required?.required) {
       throw new ForbiddenException('Este curso não faz parte da sua Trilha atual');
