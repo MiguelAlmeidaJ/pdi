@@ -27,6 +27,10 @@ export function AuthShell({children}:{children:React.ReactNode}){
           router.replace('/');
           return;
         }
+        if(user.systemRole!=='ADMIN'&&pathname.startsWith('/configuracoes')){
+          router.replace(user.systemRole==='USER'?'/meu-pdi':'/');
+          return;
+        }
       }catch{}
     }
 
