@@ -3207,3 +3207,684 @@ a{color:inherit}
 @media(max-width:760px){
   .settings-grid{grid-template-columns:1fr}
 }
+
+
+/* ===== Helpdesk-inspired login ===== */
+.helpdesk-login-page{
+  position:relative;
+  min-height:100vh;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  padding:32px;
+  background:#0b0f10 url('/login-background.svg') center/cover no-repeat;
+}
+.helpdesk-login-overlay{
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg,rgba(0,0,0,.28),rgba(0,0,0,.46));
+}
+.helpdesk-login-shell{
+  position:relative;
+  z-index:1;
+  width:min(1030px,94vw);
+  min-height:510px;
+  display:grid;
+  grid-template-columns:1.05fr .95fr;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:20px;
+  background:rgba(14,18,19,.92);
+  box-shadow:0 30px 90px rgba(0,0,0,.42);
+  backdrop-filter:blur(12px);
+}
+.helpdesk-login-brand{
+  position:relative;
+  padding:54px 48px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  background:
+    radial-gradient(circle at 12% 10%,rgba(34,197,94,.08),transparent 34%),
+    linear-gradient(145deg,#061713 0%,#071b16 56%,#06130f 100%);
+  border-right:1px solid rgba(255,255,255,.07);
+}
+.helpdesk-brand-logo{
+  position:absolute;
+  left:48px;
+  top:38px;
+}
+.helpdesk-brand-logo .trilha-brand-image{
+  max-width:220px;
+  max-height:54px;
+}
+.helpdesk-brand-copy{
+  max-width:430px;
+  text-align:center;
+  margin:0 auto;
+}
+.helpdesk-brand-copy h1{
+  color:#f8fafc;
+  font-size:26px;
+  line-height:1.18;
+  margin:0 0 10px;
+  letter-spacing:-.025em;
+}
+.helpdesk-brand-copy p{
+  color:#9fb0a6;
+  font-size:12px;
+  line-height:1.65;
+  margin:0;
+}
+.helpdesk-brand-trail{
+  width:min(360px,80%);
+  margin:32px auto 0;
+  display:flex;
+  align-items:center;
+}
+.helpdesk-brand-trail span{
+  width:13px;
+  height:13px;
+  border-radius:50%;
+  background:#22c55e;
+  box-shadow:0 0 0 5px rgba(34,197,94,.08);
+}
+.helpdesk-brand-trail i{
+  flex:1;
+  height:1px;
+  background:linear-gradient(90deg,#166534,#22c55e);
+}
+.helpdesk-login-form-panel{
+  display:grid;
+  place-items:center;
+  padding:46px;
+  background:linear-gradient(180deg,#202425 0%,#141819 100%);
+}
+.helpdesk-login-card{
+  width:min(390px,100%);
+}
+.helpdesk-login-heading{
+  margin-bottom:28px;
+}
+.helpdesk-login-heading h2{
+  margin:0;
+  color:#fff;
+  font-size:28px;
+  letter-spacing:-.03em;
+}
+.helpdesk-login-heading p{
+  margin:7px 0 0;
+  color:#929b9f;
+  font-size:11px;
+}
+.helpdesk-field{
+  display:block;
+  margin-bottom:15px;
+  color:#d8dfe2;
+  font-size:9px;
+  font-weight:700;
+}
+.helpdesk-field>span{
+  display:block;
+  margin-bottom:7px;
+}
+.helpdesk-field>div{
+  display:grid;
+  grid-template-columns:18px 1fr auto;
+  align-items:center;
+  gap:8px;
+  min-height:46px;
+  padding:0 11px;
+  border:1px solid #444b4e;
+  border-radius:7px;
+  background:#14191b;
+  transition:border-color .15s ease,box-shadow .15s ease;
+}
+.helpdesk-field>div:focus-within{
+  border-color:#22c55e;
+  box-shadow:0 0 0 3px rgba(34,197,94,.10);
+}
+.helpdesk-field svg{
+  width:15px;
+  height:15px;
+  color:#7f8a8f;
+}
+.helpdesk-field input{
+  width:100%;
+  min-width:0;
+  padding:12px 0;
+  border:0;
+  outline:0;
+  background:transparent;
+  color:#fff;
+  font:inherit;
+  font-size:11px;
+}
+.helpdesk-field input::placeholder{color:#687277}
+.helpdesk-field button{
+  width:30px;
+  height:30px;
+  display:grid;
+  place-items:center;
+  border:0;
+  background:transparent;
+  color:#8b9599;
+  cursor:pointer;
+}
+.helpdesk-login-options{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin:2px 0 18px;
+}
+.remember-check{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  color:#a4adb1;
+  font-size:9px;
+  cursor:pointer;
+}
+.remember-check input{
+  width:13px;
+  height:13px;
+  accent-color:#22c55e;
+}
+.helpdesk-login-button{
+  width:100%;
+  min-height:46px;
+  margin-top:6px;
+  border:0;
+  border-radius:7px;
+  background:#22c55e;
+  color:#07110b;
+  font-size:11px;
+  font-weight:800;
+  cursor:pointer;
+  box-shadow:0 10px 24px rgba(34,197,94,.18);
+}
+.helpdesk-login-button:hover:not(:disabled){background:#4ade80}
+.helpdesk-login-button:disabled{opacity:.65;cursor:not-allowed}
+.helpdesk-login-card>small{
+  display:block;
+  margin-top:22px;
+  color:#697479;
+  font-size:8px;
+  text-align:center;
+}
+
+/* ===== Minha Trilha v2 ===== */
+.trail-updates{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:12px;
+  padding:11px 13px;
+  border:1px solid #bbf7d0;
+  border-radius:11px;
+  background:#f0fdf4;
+}
+.trail-updates-copy{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.trail-updates-icon{
+  width:30px;height:30px;
+  display:grid;place-items:center;
+  border-radius:9px;
+  background:#dcfce7;
+  color:#166534;
+}
+.trail-updates-icon svg{width:14px;height:14px}
+.trail-updates strong,.trail-updates small{display:block}
+.trail-updates strong{font-size:9px;color:#166534}
+.trail-updates small{margin-top:2px;font-size:8px;color:#5f7667}
+.trail-updates>a{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  color:#166534;
+  text-decoration:none;
+  font-size:8px;
+  font-weight:800;
+}
+.trail-updates>a svg{width:12px;height:12px}
+
+.trail-hero{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:28px;
+  min-height:150px;
+  padding:22px 24px;
+  margin-bottom:14px;
+  border:1px solid var(--border);
+  border-radius:16px;
+  background:
+    radial-gradient(circle at 92% 12%,rgba(34,197,94,.10),transparent 25%),
+    linear-gradient(135deg,#fff 0%,#fbfefc 72%,#f0fdf4 100%);
+  box-shadow:var(--shadow-sm);
+}
+.trail-hero-person{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  min-width:0;
+}
+.trail-avatar{
+  width:70px;height:70px;
+  flex:0 0 70px;
+  display:grid;place-items:center;
+  border-radius:18px;
+  background:linear-gradient(145deg,#166534,#14532d);
+  color:#fff;
+  font-size:18px;
+  font-weight:800;
+  box-shadow:0 12px 28px rgba(22,101,52,.20);
+}
+.trail-name-line{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.trail-name-line h2{
+  margin:0;
+  font-size:21px;
+  letter-spacing:-.03em;
+}
+.trail-hero-person p{
+  margin:5px 0;
+  color:var(--muted);
+  font-size:10px;
+}
+.trail-hero-person p i{
+  font-style:normal;
+  color:#cbd5e1;
+  margin:0 3px;
+}
+.trail-hero-person>div:last-child>span{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  color:#94a3b8;
+  font-size:8px;
+}
+.trail-hero-person>div:last-child>span svg{width:12px;height:12px}
+.trail-progress{
+  display:flex;
+  align-items:center;
+  gap:13px;
+  min-width:280px;
+  padding:12px 14px;
+  border-radius:13px;
+  background:#102a1d;
+  color:#fff;
+}
+.trail-progress-ring{
+  --progress:0;
+  width:62px;height:62px;
+  flex:0 0 62px;
+  display:grid;place-items:center;
+  border-radius:50%;
+  background:conic-gradient(#22c55e calc(var(--progress)*1%),#2d4937 0);
+  position:relative;
+}
+.trail-progress-ring:after{
+  content:"";
+  position:absolute;
+  inset:7px;
+  border-radius:50%;
+  background:#102a1d;
+}
+.trail-progress-ring>div{
+  position:relative;
+  z-index:1;
+  text-align:center;
+}
+.trail-progress-ring strong,.trail-progress-ring span{display:block}
+.trail-progress-ring strong{font-size:13px}
+.trail-progress-ring span{font-size:6px;color:#9fb0a6;margin-top:1px}
+.trail-progress-copy small,.trail-progress-copy strong,.trail-progress-copy span{display:block}
+.trail-progress-copy small{font-size:6px;letter-spacing:.12em;color:#8fa697;font-weight:800}
+.trail-progress-copy strong{font-size:13px;margin:4px 0 2px}
+.trail-progress-copy span{font-size:7px;color:#9fb0a6}
+
+.trail-path-card{
+  padding:20px;
+  margin-bottom:14px;
+  border:1px solid var(--border);
+  border-radius:15px;
+  background:#fff;
+  box-shadow:var(--shadow-sm);
+}
+.trail-path-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:20px;
+}
+.trail-path-head h2{font-size:16px;margin:4px 0 0}
+.trail-status{
+  padding:6px 9px;
+  border-radius:999px;
+  background:#fffbeb;
+  color:#b45309;
+  font-size:7px;
+  font-weight:800;
+}
+.trail-status.ready{
+  background:#dcfce7;
+  color:#166534;
+}
+.trail-path{
+  display:grid;
+  grid-template-columns:minmax(210px,.8fr) minmax(140px,1.4fr) minmax(210px,.8fr);
+  align-items:center;
+  gap:14px;
+}
+.trail-path-node{
+  position:relative;
+  padding:14px 14px 13px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:#fbfcfd;
+}
+.trail-path-node.current{
+  border-color:#bbf7d0;
+  background:#f0fdf4;
+}
+.trail-node-marker{
+  position:absolute;
+  right:12px;top:12px;
+  width:27px;height:27px;
+  display:grid;place-items:center;
+  border-radius:8px;
+  background:#fff;
+  color:#166534;
+  border:1px solid #d8e8dd;
+}
+.trail-node-marker svg{width:12px;height:12px}
+.trail-path-node small,.trail-path-node strong,.trail-path-node p,.trail-path-node b{display:block}
+.trail-path-node small{font-size:6px;letter-spacing:.12em;color:#94a3b8;font-weight:800}
+.trail-path-node strong{font-size:14px;margin-top:5px}
+.trail-path-node p{font-size:8px;color:#64748b;margin:3px 0 12px}
+.trail-path-node b{font-size:9px;color:#334155}
+.trail-path-line{
+  position:relative;
+  height:3px;
+  border-radius:999px;
+  background:#e2e8f0;
+}
+.trail-line-fill{
+  position:absolute;
+  left:0;top:0;bottom:0;
+  border-radius:999px;
+  background:linear-gradient(90deg,#166534,#22c55e);
+}
+.trail-path-line i{
+  position:absolute;
+  right:-1px;top:50%;
+  width:10px;height:10px;
+  border-top:2px solid #94a3b8;
+  border-right:2px solid #94a3b8;
+  transform:translateY(-50%) rotate(45deg);
+}
+.trail-path-meta{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  margin-top:13px;
+}
+.trail-path-meta>div{
+  display:grid;
+  grid-template-columns:24px 1fr;
+  column-gap:7px;
+  align-items:center;
+  padding:9px 10px;
+  border-radius:9px;
+  background:#f8fafc;
+}
+.trail-path-meta svg{grid-row:1/3;width:13px;height:13px;color:#94a3b8}
+.trail-path-meta span,.trail-path-meta strong{display:block}
+.trail-path-meta span{font-size:7px;color:#94a3b8}
+.trail-path-meta strong{font-size:8px;color:#334155;margin-top:1px}
+
+.trail-main-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.7fr) minmax(280px,.65fr);
+  gap:14px;
+  margin-bottom:14px;
+}
+.trail-requirements-card{min-width:0}
+.trail-requirement-count{
+  min-width:40px;height:28px;
+  display:grid;place-items:center;
+  border-radius:999px;
+  background:#f0fdf4;
+  color:#166534;
+  font-size:8px;
+  font-weight:800;
+}
+.trail-requirements{display:grid;margin-top:13px}
+.trail-requirement{
+  display:grid;
+  grid-template-columns:34px minmax(0,1fr) auto;
+  gap:10px;
+  align-items:center;
+  padding:13px 0;
+  border-top:1px solid #eef1f4;
+}
+.trail-requirement:first-child{border-top:0}
+.trail-requirement-check{
+  width:30px;height:30px;
+  display:grid;place-items:center;
+  border-radius:9px;
+  background:#f1f5f9;
+  color:#94a3b8;
+}
+.trail-requirement-check svg{width:14px;height:14px}
+.trail-requirement.done .trail-requirement-check{
+  background:#dcfce7;color:#16a34a;
+}
+.trail-requirement.review .trail-requirement-check{
+  background:#fffbeb;color:#d97706;
+}
+.trail-requirement-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.trail-requirement-title strong{font-size:9px}
+.trail-requirement-title em{
+  flex:0 0 auto;
+  padding:4px 6px;
+  border-radius:999px;
+  background:#f1f5f9;
+  color:#64748b;
+  font-size:6px;
+  font-style:normal;
+  font-weight:800;
+}
+.trail-requirement.done .trail-requirement-title em{background:#dcfce7;color:#166534}
+.trail-requirement.review .trail-requirement-title em{background:#fffbeb;color:#b45309}
+.trail-requirement.rejected .trail-requirement-title em{background:#fef2f2;color:#b91c1c}
+.trail-requirement-main>p{
+  margin:3px 0 0;
+  color:#94a3b8;
+  font-size:8px;
+  line-height:1.4;
+}
+.trail-requirement-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px 10px;
+  margin-top:5px;
+}
+.trail-requirement-meta span,
+.trail-requirement-meta a{
+  color:#94a3b8;
+  font-size:7px;
+  text-decoration:none;
+}
+.trail-requirement-meta a{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  color:#166534;
+  font-weight:700;
+}
+.trail-requirement-meta a svg{width:10px;height:10px}
+.trail-evidence-button{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:7px 9px;
+  border:1px solid #bbf7d0;
+  border-radius:8px;
+  background:#fff;
+  color:#166534;
+  font-size:7px;
+  font-weight:800;
+  cursor:pointer;
+}
+.trail-evidence-button:hover{background:#f0fdf4}
+.trail-evidence-button svg{width:11px;height:11px}
+
+.trail-side-stack{display:grid;gap:14px}
+.trail-next-action{
+  padding:18px;
+  border-radius:14px;
+  background:linear-gradient(145deg,#102a1d,#0b1f15);
+  color:#fff;
+}
+.trail-next-action.ready{
+  background:linear-gradient(145deg,#14532d,#166534);
+}
+.trail-next-icon{
+  width:34px;height:34px;
+  display:grid;place-items:center;
+  border-radius:10px;
+  background:rgba(255,255,255,.08);
+  color:#4ade80;
+  margin-bottom:24px;
+}
+.trail-next-icon svg{width:15px;height:15px}
+.trail-next-action small{font-size:6px;letter-spacing:.12em;color:#8fa697;font-weight:800}
+.trail-next-action h3{font-size:15px;margin:5px 0 5px}
+.trail-next-action p{margin:0;color:#a7b9ad;font-size:8px;line-height:1.5}
+.trail-journey-list{display:grid;margin-top:10px}
+.trail-journey-list>div{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:10px 0;
+  border-top:1px solid #eef1f4;
+}
+.trail-journey-list span{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  color:#64748b;
+  font-size:8px;
+}
+.trail-journey-list span svg{width:12px;height:12px;color:#94a3b8}
+.trail-journey-list strong{font-size:8px;color:#334155}
+
+.trail-history-card{margin-bottom:20px}
+.trail-history{margin-top:13px}
+.trail-history-item{
+  display:grid;
+  grid-template-columns:24px minmax(0,1fr) auto;
+  gap:10px;
+  min-height:64px;
+}
+.trail-history-rail{
+  position:relative;
+  display:flex;
+  justify-content:center;
+}
+.trail-history-rail span{
+  position:relative;
+  z-index:1;
+  width:10px;height:10px;
+  margin-top:4px;
+  border-radius:50%;
+  background:#cbd5e1;
+  box-shadow:0 0 0 4px #f8fafc;
+}
+.trail-history-rail span.active{background:#22c55e}
+.trail-history-rail i{
+  position:absolute;
+  top:14px;bottom:-4px;
+  width:1px;
+  background:#e2e8f0;
+}
+.trail-history-main>div{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.trail-history-main strong{font-size:9px}
+.trail-history-main>div>span{
+  padding:3px 6px;
+  border-radius:999px;
+  background:#f0fdf4;
+  color:#166534;
+  font-size:6px;
+  font-weight:800;
+}
+.trail-history-main small{
+  display:block;
+  margin-top:3px;
+  color:#94a3b8;
+  font-size:7px;
+}
+.trail-history-main p{
+  margin:5px 0 0;
+  color:#64748b;
+  font-size:8px;
+}
+.trail-history-item>b{
+  font-size:8px;
+  color:#334155;
+  white-space:nowrap;
+}
+
+@media(max-width:1050px){
+  .trail-main-grid{grid-template-columns:1fr}
+  .trail-side-stack{grid-template-columns:1fr 1fr}
+}
+@media(max-width:850px){
+  .helpdesk-login-shell{grid-template-columns:1fr;max-width:560px}
+  .helpdesk-login-brand{min-height:250px;padding:80px 32px 32px}
+  .helpdesk-brand-logo{left:32px;top:26px}
+  .helpdesk-brand-copy h1{font-size:22px}
+  .trail-hero{align-items:flex-start;flex-direction:column}
+  .trail-progress{width:100%;min-width:0}
+  .trail-path{grid-template-columns:1fr}
+  .trail-path-line{height:42px;width:3px;margin-left:27px}
+  .trail-line-fill{width:100%!important;height:var(--progress);bottom:auto}
+  .trail-path-line i{right:auto;left:-4px;top:auto;bottom:0;transform:rotate(135deg)}
+  .trail-path-meta{grid-template-columns:1fr}
+}
+@media(max-width:650px){
+  .helpdesk-login-page{padding:14px}
+  .helpdesk-login-brand{display:none}
+  .helpdesk-login-form-panel{padding:30px 22px}
+  .helpdesk-login-shell{min-height:0}
+  .trail-hero{padding:17px}
+  .trail-hero-person{align-items:flex-start}
+  .trail-avatar{width:56px;height:56px;flex-basis:56px;border-radius:15px;font-size:15px}
+  .trail-name-line{align-items:flex-start;flex-direction:column}
+  .trail-side-stack{grid-template-columns:1fr}
+  .trail-requirement{grid-template-columns:32px minmax(0,1fr)}
+  .trail-evidence-button{grid-column:2;justify-self:start}
+  .trail-path-meta{grid-template-columns:1fr}
+  .trail-history-item{grid-template-columns:20px 1fr}
+  .trail-history-item>b{grid-column:2;margin-top:-18px}
+}
