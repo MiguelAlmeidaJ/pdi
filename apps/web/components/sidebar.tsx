@@ -30,7 +30,7 @@ type NavItem={
 };
 
 const managementItems:NavItem[]=[
-  {label:'Visão geral',href:'/',icon:FiHome},
+  {label:'Início',href:'/',icon:FiHome},
   {label:'Colaboradores',href:'/colaboradores',icon:FiUsers},
   {label:'Avaliações',href:'/avaliacoes',icon:FiCheckCircle,reviewBadge:true},
   {label:'Times',href:'/times',icon:FiGrid},
@@ -40,7 +40,7 @@ const managementItems:NavItem[]=[
 ];
 
 const userItems:NavItem[]=[
-  {label:'Meu desenvolvimento',href:'/meu-pdi',icon:FiActivity},
+  {label:'Minha Trilha',href:'/meu-pdi',icon:FiActivity},
 ];
 
 export function Sidebar(){
