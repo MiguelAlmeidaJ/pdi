@@ -21,7 +21,7 @@ module.exports = {
     },
     {
       name: 'trilha-web',
-      cwd: root,
+      cwd: path.join(root, 'apps/web'),
       script: path.join(root, 'apps/web/node_modules/next/dist/bin/next'),
       args: 'start -p 3000',
       instances: 1,
