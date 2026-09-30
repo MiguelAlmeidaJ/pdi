@@ -7,6 +7,7 @@ import {
   FiActivity,
   FiAward,
   FiBriefcase,
+  FiBookOpen,
   FiCheckCircle,
   FiChevronDown,
   FiGrid,
@@ -37,6 +38,7 @@ const managementItems:NavItem[]=[
   {label:'Times',href:'/times',icon:FiGrid},
   {label:'Cargos e steps',href:'/cargos',icon:FiBriefcase},
   {label:'Qualificações',href:'/qualificacoes',icon:FiAward},
+  {label:'Cursos',href:'/cursos',icon:FiBookOpen},
   {label:'Promoções',href:'/promocoes',icon:FiTrendingUp},
   {label:'Configurações',href:'/configuracoes',icon:FiSettings},
 ];
