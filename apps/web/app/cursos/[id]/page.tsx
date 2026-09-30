@@ -38,6 +38,19 @@ type Module={
   lessons:Lesson[];
 };
 
+type CourseProgress={
+  totalLessons:number;
+  students:{
+    user:{id:string;name:string;email:string};
+    completedLessons:number;
+    watchedSeconds:number;
+    startedAt?:string|null;
+    updatedAt:string;
+    percentage:number;
+    suspiciousEvents:number;
+  }[];
+};
+
 type Course={
   id:string;
   title:string;
@@ -63,6 +76,7 @@ export default function CursoDetalhe(){
   const courseId=params.id;
 
   const [course,setCourse]=useState<Course|null>(null);
+  const [progress,setProgress]=useState<CourseProgress>({totalLessons:0,students:[]});
   const [error,setError]=useState('');
   const [moduleOpen,setModuleOpen]=useState(false);
   const [lessonModule,setLessonModule]=useState<Module|null>(null);
@@ -75,8 +89,12 @@ export default function CursoDetalhe(){
 
   async function load(){
     try{
-      const data=await api<Course>('/learning/courses/'+courseId);
+      const [data,progressData]=await Promise.all([
+        api<Course>('/learning/courses/'+courseId),
+        api<CourseProgress>('/learning/courses/'+courseId+'/progress'),
+      ]);
       setCourse(data);
+      setProgress(progressData);
       setError('');
     }catch(e){
       setError(e instanceof Error?e.message:'Erro ao carregar curso');
@@ -196,6 +214,25 @@ export default function CursoDetalhe(){
     <section className="learning-structure-head">
       <div><p className="eyebrow">ESTRUTURA</p><h2>Módulos e aulas</h2><p>As aulas são liberadas ao colaborador em sequência. Ele só avança após concluir a anterior.</p></div>
       <button className="primary-action action-with-icon" onClick={()=>setModuleOpen(true)}><FiPlus/> Adicionar módulo</button>
+    </section>
+
+    <section className="panel learning-progress-panel">
+      <div className="panel-head">
+        <div><p className="eyebrow">ACOMPANHAMENTO</p><h2>Progresso dos colaboradores</h2><p className="panel-description">Tempo validado pelo servidor, aulas concluídas e tentativas de avanço não aceitas.</p></div>
+        <span className="trail-requirement-count">{progress.students.length}</span>
+      </div>
+
+      {progress.students.length?<div className="learning-progress-table">
+        <div className="learning-progress-row head"><span>Colaborador</span><span>Progresso</span><span>Aulas</span><span>Tempo validado</span><span>Alertas</span><span>Última atividade</span></div>
+        {progress.students.map(student=><div className="learning-progress-row" key={student.user.id}>
+          <span><strong>{student.user.name}</strong><small>{student.user.email}</small></span>
+          <span><div className="learning-progress-meter"><i style={{width:student.percentage+'%'}}/></div><b>{student.percentage}%</b></span>
+          <span>{student.completedLessons}/{progress.totalLessons}</span>
+          <span>{Math.floor(student.watchedSeconds/60)} min</span>
+          <span><em className={student.suspiciousEvents?'learning-alert-count has-alert':'learning-alert-count'}>{student.suspiciousEvents}</em></span>
+          <span>{new Date(student.updatedAt).toLocaleString('pt-BR')}</span>
+        </div>)}
+      </div>:<div className="empty-state compact"><b>Ninguém iniciou este curso ainda</b><span>O progresso aparecerá aqui assim que um colaborador começar a primeira aula.</span></div>}
     </section>
 
     <section className="learning-module-list">
