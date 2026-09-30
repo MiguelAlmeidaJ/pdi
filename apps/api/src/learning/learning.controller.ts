@@ -57,6 +57,15 @@ export class LearningController {
   }
 
   @Roles(SystemRole.ADMIN, SystemRole.MANAGER)
+  @Get('courses/:id/progress')
+  getCourseProgress(
+    @Param('id') id: string,
+    @Request() request: AuthenticatedRequest,
+  ) {
+    return this.learning.getCourseProgress(id, request.user);
+  }
+
+  @Roles(SystemRole.ADMIN, SystemRole.MANAGER)
   @Get('courses/:id')
   getCourse(
     @Param('id') id: string,
