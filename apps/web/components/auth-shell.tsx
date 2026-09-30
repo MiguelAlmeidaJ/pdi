@@ -33,6 +33,6 @@ export function AuthShell({children}:{children:React.ReactNode}){
     setReady(true);
   },[pathname,router]);
 
-  if(!ready)return <div className="app-loading"><div className="brand-mark">P</div><span>Carregando PDI...</span></div>;
+  if(!ready)return <div className="app-loading"><span className="trilha-loading-dot"/><span>Carregando Trilha...</span></div>;
   return <>{children}</>;
 }
