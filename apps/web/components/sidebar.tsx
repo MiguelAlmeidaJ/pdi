@@ -38,7 +38,7 @@ const managementItems:NavItem[]=[
   {label:'Cargos e steps',href:'/cargos',icon:FiBriefcase},
   {label:'Qualificações',href:'/qualificacoes',icon:FiAward},
   {label:'Promoções',href:'/promocoes',icon:FiTrendingUp},
-  {label:'Configurações',href:'/configuracoes/identidade-visual',icon:FiSettings},
+  {label:'Configurações',href:'/configuracoes',icon:FiSettings},
 ];
 
 const userItems:NavItem[]=[
