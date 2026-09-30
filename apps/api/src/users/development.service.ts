@@ -18,7 +18,12 @@ export class DevelopmentService {
       include: {
         role: true,
         currentRoleStep: true,
-        qualifications: { include: { qualification: true, evaluator: { select: { id: true, name: true } } } },
+        qualifications: {
+          include: {
+            qualification: { include: { links: { orderBy: { order: 'asc' } } } },
+            evaluator: { select: { id: true, name: true } },
+          },
+        },
       },
     });
 
@@ -37,7 +42,11 @@ export class DevelopmentService {
       include: {
         requirements: {
           where: { required: true },
-          include: { qualification: true },
+          include: {
+            qualification: {
+              include: { links: { orderBy: { order: 'asc' } } },
+            },
+          },
           orderBy: { qualification: { name: 'asc' } },
         },
       },
@@ -111,6 +120,7 @@ export class DevelopmentService {
         type: requirement.qualification.type,
         description: requirement.qualification.description,
         referenceUrl: requirement.qualification.referenceUrl,
+        links: requirement.qualification.links,
         notes: requirement.notes,
         status: userQualification?.status ?? QualificationStatus.PENDING,
         evidenceUrl: userQualification?.evidenceUrl ?? null,
