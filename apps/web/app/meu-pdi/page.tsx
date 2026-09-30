@@ -9,6 +9,8 @@ import {
   FiCheck,
   FiClock,
   FiExternalLink,
+  FiBookOpen,
+  FiPlayCircle,
   FiSend,
   FiTrendingUp,
   FiUser,
@@ -50,6 +52,8 @@ type Requirement={
   submittedAt?:string|null;
   evaluatedAt?:string|null;
   evaluator?:{id:string;name:string}|null;
+  links?:{id?:string;title:string;url:string;order?:number}[];
+  referenceUrl?:string|null;
 };
 
 type Development={
@@ -137,6 +141,18 @@ export default function MeuPdi(){
   const initials=profile.name.split(' ').slice(0,2).map(part=>part[0]).join('').toUpperCase();
   const missing=Math.max(0,dev.progress.required-dev.progress.completed);
   const recentNotifications=notifications.slice(0,2);
+  const courseRequirements=dev.requirements.filter(requirement=>requirement.source==='QUALIFICATION'&&requirement.type==='COURSE');
+  const pendingCourses=courseRequirements.filter(requirement=>!requirement.met);
+  const completedCourses=courseRequirements.filter(requirement=>requirement.met);
+
+  function providerLabel(url:string){
+    const value=url.toLowerCase();
+    if(value.includes('udemy.com'))return 'Udemy';
+    if(value.includes('youtube.com')||value.includes('youtu.be'))return 'YouTube';
+    if(value.includes('coursera.org'))return 'Coursera';
+    if(value.includes('alura.com.br'))return 'Alura';
+    return 'Material externo';
+  }
 
   return <AppLayout title="Minha Trilha" description="Seu momento atual, os próximos marcos e o caminho para continuar evoluindo.">
     {recentNotifications.length>0&&<section className="trail-updates">
@@ -204,6 +220,62 @@ export default function MeuPdi(){
         <div><FiAward/><span>Requisitos restantes</span><strong>{missing}</strong></div>
       </div>
     </section>
+
+    {courseRequirements.length>0&&<section className="panel trail-courses-card">
+      <div className="panel-head">
+        <div>
+          <p className="eyebrow">CURSOS DA SUA TRILHA</p>
+          <h2>O que você precisa estudar</h2>
+          <p className="panel-description">Acesse os cursos e materiais vinculados às qualificações exigidas para o próximo step.</p>
+        </div>
+        <span className="trail-course-summary">{pendingCourses.length} pendente(s)</span>
+      </div>
+
+      <div className="trail-course-grid">
+        {pendingCourses.map(course=><article className="trail-course-card" key={course.key}>
+          <div className="trail-course-icon"><FiBookOpen/></div>
+          <div className="trail-course-copy">
+            <div className="trail-course-title">
+              <strong>{course.name}</strong>
+              <span>Pendente</span>
+            </div>
+            <p>{course.description||course.notes||'Curso necessário para avançar para o próximo step.'}</p>
+
+            <div className="trail-course-links">
+              {(course.links||[]).map(link=><a href={link.url} target="_blank" rel="noreferrer" key={link.url+link.title}>
+                <FiPlayCircle/>
+                <div><strong>{link.title}</strong><span>{providerLabel(link.url)}</span></div>
+                <FiExternalLink/>
+              </a>)}
+              {!course.links?.length&&course.referenceUrl&&<a href={course.referenceUrl} target="_blank" rel="noreferrer">
+                <FiPlayCircle/>
+                <div><strong>Abrir material do curso</strong><span>{providerLabel(course.referenceUrl)}</span></div>
+                <FiExternalLink/>
+              </a>}
+            </div>
+          </div>
+          <button className="trail-evidence-button" onClick={()=>openSubmission(course)}><FiSend/> Enviar evidência</button>
+        </article>)}
+
+        {completedCourses.map(course=><article className="trail-course-card completed" key={course.key}>
+          <div className="trail-course-icon"><FiCheck/></div>
+          <div className="trail-course-copy">
+            <div className="trail-course-title">
+              <strong>{course.name}</strong>
+              <span>Concluído</span>
+            </div>
+            <p>{course.description||'Curso concluído e validado na sua Trilha.'}</p>
+            <div className="trail-course-links">
+              {(course.links||[]).map(link=><a href={link.url} target="_blank" rel="noreferrer" key={link.url+link.title}>
+                <FiBookOpen/>
+                <div><strong>{link.title}</strong><span>{providerLabel(link.url)}</span></div>
+                <FiExternalLink/>
+              </a>)}
+            </div>
+          </div>
+        </article>)}
+      </div>
+    </section>}
 
     <section className="trail-main-grid">
       <article className="panel trail-requirements-card">
