@@ -76,3 +76,40 @@ Veja a modelagem inicial em `packages/database/prisma/schema.prisma`.
 6. Criar dashboards separados para colaborador, gerente e admin.
 
 A planilha **Cargos e Salários.xlsx** será usada como fonte para uma etapa posterior de importação e normalização dos cargos, níveis, qualificações e salários existentes.
+
+
+## Cursos internos e vídeo protegido
+
+A Trilha possui um módulo de aprendizado interno vinculado às qualificações do tipo `COURSE`.
+
+Fluxo:
+
+1. Admin ou gerente cria um curso e o vincula a uma qualificação.
+2. O curso é organizado em módulos e aulas sequenciais.
+3. O upload de uma aula é processado pelo backend para HLS.
+4. O colaborador acessa o curso pela Biblioteca de Aprendizado em `Minha Trilha`.
+5. A próxima aula só é liberada quando a anterior atinge o percentual mínimo de conclusão.
+6. O player não oferece seek e força reprodução em 1x.
+7. O backend valida heartbeats usando tempo real transcorrido e posição do vídeo.
+8. Ao concluir todas as aulas, a qualificação vinculada é marcada automaticamente como concluída.
+
+### Dependências do servidor de vídeo
+
+O host da API precisa ter `ffmpeg` e `ffprobe` disponíveis no PATH.
+
+Exemplo no Ubuntu/Debian:
+
+```bash
+sudo apt update
+sudo apt install -y ffmpeg
+```
+
+Variáveis opcionais:
+
+```env
+COURSE_STORAGE_PATH=/var/lib/trilha/courses
+FFMPEG_PATH=/usr/bin/ffmpeg
+FFPROBE_PATH=/usr/bin/ffprobe
+```
+
+Sem `COURSE_STORAGE_PATH`, os segmentos HLS são armazenados em `storage/courses` fora do controle de versão.
