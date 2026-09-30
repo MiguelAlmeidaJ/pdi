@@ -87,6 +87,69 @@ export class LearningService {
     });
   }
 
+  async getCourseProgress(id: string, actor: Actor) {
+    const course = await this.getCourse(id, actor);
+    const activeLessonIds = course.modules
+      .filter((module) => module.active)
+      .flatMap((module) => module.lessons.filter((lesson) => lesson.active).map((lesson) => lesson.id));
+
+    if (!activeLessonIds.length) {
+      return { totalLessons: 0, students: [] };
+    }
+
+    const [progressRows, sessionStats] = await Promise.all([
+      this.prisma.courseLessonProgress.findMany({
+        where: { lessonId: { in: activeLessonIds } },
+        include: { user: { select: { id: true, name: true, email: true } } },
+        orderBy: { updatedAt: 'desc' },
+      }),
+      this.prisma.videoWatchSession.groupBy({
+        by: ['userId'],
+        where: { lessonId: { in: activeLessonIds } },
+        _sum: { suspiciousEvents: true },
+      }),
+    ]);
+
+    const suspiciousByUser = new Map(
+      sessionStats.map((item) => [item.userId, item._sum.suspiciousEvents ?? 0]),
+    );
+    const grouped = new Map<string, {
+      user: { id: string; name: string; email: string };
+      completedLessons: number;
+      watchedSeconds: number;
+      startedAt: Date | null;
+      updatedAt: Date;
+    }>();
+
+    for (const row of progressRows) {
+      const current = grouped.get(row.userId) ?? {
+        user: row.user,
+        completedLessons: 0,
+        watchedSeconds: 0,
+        startedAt: null,
+        updatedAt: row.updatedAt,
+      };
+      if (row.completedAt) current.completedLessons += 1;
+      current.watchedSeconds += row.watchedSeconds;
+      if (row.startedAt && (!current.startedAt || row.startedAt < current.startedAt)) {
+        current.startedAt = row.startedAt;
+      }
+      if (row.updatedAt > current.updatedAt) current.updatedAt = row.updatedAt;
+      grouped.set(row.userId, current);
+    }
+
+    return {
+      totalLessons: activeLessonIds.length,
+      students: Array.from(grouped.values())
+        .map((item) => ({
+          ...item,
+          percentage: Math.round((item.completedLessons / activeLessonIds.length) * 100),
+          suspiciousEvents: suspiciousByUser.get(item.user.id) ?? 0,
+        }))
+        .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()),
+    };
+  }
+
   async getCourse(id: string, actor: Actor) {
     const course = await this.prisma.course.findUnique({
       where: { id },
