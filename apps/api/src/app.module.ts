@@ -9,6 +9,7 @@ import { RolesModule } from './roles/roles.module';
 import { QualificationsModule } from './qualifications/qualifications.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { BrandingModule } from './branding/branding.module';
+import { LearningModule } from './learning/learning.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { BrandingModule } from './branding/branding.module';
     QualificationsModule,
     NotificationsModule,
     BrandingModule,
+    LearningModule,
   ],
   controllers: [AppController],
 })
