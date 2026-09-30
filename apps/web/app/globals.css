@@ -2793,3 +2793,34 @@ a{color:inherit}
     color:#4ADE80!important;
   }
 }
+
+
+/* ===== White Trilha brand on dark surfaces ===== */
+.trilha-brand.dark .trilha-brand-icon{
+  background:transparent!important;
+  padding:0!important;
+  box-shadow:none!important;
+  border-radius:0!important;
+}
+.trilha-brand.dark .trilha-brand-copy strong{
+  color:#FFFFFF!important;
+}
+.trilha-brand.dark .trilha-brand-copy span{
+  color:rgba(255,255,255,.62)!important;
+}
+.sidebar .trilha-brand.dark .trilha-brand-icon{
+  width:40px;
+  height:40px;
+  object-fit:contain;
+}
+.login-logo .trilha-brand.dark .trilha-brand-icon{
+  width:58px;
+  height:58px;
+  flex-basis:58px;
+}
+.login-logo .trilha-brand.dark .trilha-brand-copy strong{
+  font-size:26px;
+}
+.login-logo .trilha-brand.dark .trilha-brand-copy span{
+  font-size:10px;
+}
