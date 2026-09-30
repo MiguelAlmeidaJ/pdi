@@ -3,8 +3,8 @@ import './globals.css';
 import { AuthShell } from '../components/auth-shell';
 
 export const metadata: Metadata = {
-  title: 'PDI',
-  description: 'Plano de Desenvolvimento Individual',
+  title: 'Trilha',
+  description: 'Trilha — Evolução profissional com clareza.',
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
