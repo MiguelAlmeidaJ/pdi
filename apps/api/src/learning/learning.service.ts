@@ -345,6 +345,17 @@ export class LearningService {
     }
 
     const previousAssetKey = lesson.videoAssetKey;
+    if (previousAssetKey) {
+      const existingProgress = await this.prisma.courseLessonProgress.count({
+        where: { lessonId },
+      });
+      if (existingProgress > 0) {
+        try { unlinkSync(file.path); } catch {}
+        throw new BadRequestException(
+          'Este vídeo já possui progresso de colaboradores e não pode ser substituído. Crie uma nova aula para preservar o histórico.',
+        );
+      }
+    }
 
     await this.prisma.courseLesson.update({
       where: { id: lessonId },
@@ -591,9 +602,7 @@ export class LearningService {
         lessonId,
         startedAt: new Date(),
       },
-      update: {
-        startedAt: target.progress.completedAt ? undefined : new Date(),
-      },
+      update: {},
     });
 
     const token = randomBytes(32).toString('hex');
@@ -672,7 +681,11 @@ export class LearningService {
     if (valid) {
       clientPosition = position;
       if (position > frontier) frontier = position;
-    } else if (dto.playing && dto.visible && delta > 2.5) {
+    } else if (
+      dto.playing &&
+      dto.visible &&
+      (delta > 2.5 || Math.abs(dto.playbackRate - 1) > 0.02)
+    ) {
       suspiciousEvents += 1;
     } else if (delta <= 0) {
       clientPosition = position;
