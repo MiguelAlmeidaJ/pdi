@@ -20,7 +20,12 @@ export class DevelopmentService {
         currentRoleStep: true,
         qualifications: {
           include: {
-            qualification: { include: { links: { orderBy: { order: 'asc' } } } },
+            qualification: {
+              include: {
+                links: { orderBy: { order: 'asc' } },
+                course: { select: { id: true, title: true, active: true } },
+              },
+            },
             evaluator: { select: { id: true, name: true } },
           },
         },
@@ -44,7 +49,10 @@ export class DevelopmentService {
           where: { required: true },
           include: {
             qualification: {
-              include: { links: { orderBy: { order: 'asc' } } },
+              include: {
+                links: { orderBy: { order: 'asc' } },
+                course: { select: { id: true, title: true, active: true } },
+              },
             },
           },
           orderBy: { qualification: { name: 'asc' } },
@@ -121,6 +129,7 @@ export class DevelopmentService {
         description: requirement.qualification.description,
         referenceUrl: requirement.qualification.referenceUrl,
         links: requirement.qualification.links,
+        internalCourse: requirement.qualification.course,
         notes: requirement.notes,
         status: userQualification?.status ?? QualificationStatus.PENDING,
         evidenceUrl: userQualification?.evidenceUrl ?? null,
