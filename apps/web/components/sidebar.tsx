@@ -78,7 +78,7 @@ export function Sidebar(){
 
   return <aside className="sidebar">
     <div className="brand">
-      <TrilhaBrand/>
+      <TrilhaBrand theme="dark"/>
     </div>
 
     <div className="sidebar-section-title">{user?.systemRole==='USER'?'DESENVOLVIMENTO':'GESTÃO'}</div>
