@@ -2486,3 +2486,310 @@ body{
     grid-column:2/3;
   }
 }
+
+
+/* ===== Trilha brand system ===== */
+:root{
+  --bg:#F8FAFC;
+  --surface:#FFFFFF;
+  --surface-soft:#F8FAFC;
+  --surface-muted:#F1F5F9;
+  --border:#E2E8F0;
+  --border-strong:#CBD5E1;
+  --text:#1F2937;
+  --text-secondary:#334155;
+  --muted:#64748B;
+  --muted-light:#94A3B8;
+  --primary:#166534;
+  --primary-strong:#14532D;
+  --primary-soft:#DCFCE7;
+  --primary-soft-2:#F0FDF4;
+  --success:#22C55E;
+  --success-soft:#DCFCE7;
+  --warning:#F59E0B;
+  --warning-soft:#FFFBEB;
+  --danger:#DC2626;
+  --danger-soft:#FEF2F2;
+  --sidebar:#102A1D;
+  --sidebar-2:#0D2419;
+  --sidebar-border:#1D3B2A;
+}
+
+html,body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+
+h1,h2,h3,h4,.app-header-copy h1,.profile-hero-title h2,.login-copy h1,.login-card h2{
+  font-family:Manrope,Inter,ui-sans-serif,system-ui,sans-serif;
+}
+
+a{color:inherit}
+
+.eyebrow{color:var(--primary)!important}
+
+.primary-action,.primary-button{
+  background:var(--primary)!important;
+  color:#fff!important;
+  box-shadow:0 6px 16px rgba(22,101,52,.14)!important;
+}
+.primary-action:hover,.primary-button:not(:disabled):hover{
+  background:var(--primary-strong)!important;
+}
+.secondary-button{
+  color:var(--text-secondary)!important;
+  border-color:var(--border)!important;
+}
+.text-button,.inline-link,.people-list-action,.notification-popover-head button,.notification-view-all{
+  color:var(--primary)!important;
+}
+
+.status-pill{
+  background:var(--primary-soft)!important;
+  color:#166534!important;
+}
+.type-pill{
+  background:#ECFDF3!important;
+  color:#166534!important;
+}
+.ready-badge{
+  background:var(--primary-soft)!important;
+  color:#166534!important;
+}
+.pending-badge{
+  background:var(--warning-soft)!important;
+  color:#B45309!important;
+}
+
+.progress-fill{background:var(--success)!important}
+.scope-banner{
+  background:#F0FDF4!important;
+  border-color:#BBF7D0!important;
+}
+.scope-banner strong{color:var(--primary)!important}
+
+.sidebar{
+  background:linear-gradient(180deg,#102A1D 0%,#0E251A 62%,#0B1E15 100%)!important;
+  border-right:1px solid rgba(255,255,255,.055)!important;
+}
+
+.trilha-brand{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  min-width:0;
+}
+.trilha-brand-icon{
+  width:40px;
+  height:40px;
+  flex:0 0 40px;
+  object-fit:contain;
+  border-radius:11px;
+  background:#F0FDF4;
+  padding:3px;
+  box-shadow:0 8px 22px rgba(0,0,0,.16),inset 0 0 0 1px rgba(34,197,94,.12);
+}
+.trilha-brand-copy{
+  min-width:0;
+  white-space:nowrap;
+}
+.trilha-brand-copy strong,
+.trilha-brand-copy span{display:block}
+.trilha-brand-copy strong{
+  color:#F8FAFC;
+  font-family:Manrope,Inter,ui-sans-serif,system-ui,sans-serif;
+  font-size:18px;
+  line-height:1;
+  font-weight:800;
+  letter-spacing:-.035em;
+}
+.trilha-brand-copy span{
+  margin-top:4px;
+  color:#8FA697;
+  font-size:8px;
+  line-height:1.25;
+}
+
+.sidebar-section-title{color:#62806D!important}
+.nav-item{color:#8FA697!important}
+.nav-item:hover{
+  background:rgba(255,255,255,.045)!important;
+  color:#E7F0EA!important;
+}
+.nav-icon{color:#789282!important}
+.nav-item.active{
+  background:linear-gradient(90deg,rgba(34,197,94,.16),rgba(34,197,94,.055))!important;
+  color:#fff!important;
+  box-shadow:inset 0 0 0 1px rgba(34,197,94,.08)!important;
+}
+.nav-item.active .nav-icon{
+  color:#4ADE80!important;
+  background:rgba(34,197,94,.10)!important;
+}
+.nav-item.active:before{background:#22C55E!important}
+.nav-badge{background:#F59E0B!important;color:#fff!important}
+
+.profile .avatar,
+.profile-menu-avatar{
+  background:linear-gradient(145deg,#174C2A,#102F1E)!important;
+  color:#DDFBE7!important;
+  border-color:rgba(34,197,94,.18)!important;
+  box-shadow:inset 0 0 0 1px rgba(34,197,94,.14)!important;
+}
+.profile-menu{
+  background:#122B1E!important;
+  border-color:rgba(255,255,255,.075)!important;
+}
+.profile-menu a{color:#A7B9AD!important}
+.profile-menu a:hover{color:#F0FDF4!important;background:rgba(34,197,94,.07)!important}
+
+.notification-trigger:hover{color:var(--primary)!important}
+.notification-mini.unread{background:#F0FDF4!important}
+.notification-mini.unread .notification-mini-dot{background:var(--success)!important}
+.notification-page-item.unread{
+  background:#F7FFF9!important;
+  border-color:#BBF7D0!important;
+}
+.notification-page-icon{
+  background:#DCFCE7!important;
+  color:#166534!important;
+}
+.notification-page-content em{
+  background:#DCFCE7!important;
+  color:#166534!important;
+}
+
+.avatar,
+.avatar.soft,
+.avatar.large,
+.avatar.list-avatar{
+  background:linear-gradient(145deg,#166534,#14532D)!important;
+  color:#fff!important;
+  box-shadow:0 6px 16px rgba(22,101,52,.14)!important;
+}
+.entity-symbol,.roadmap-icon,.empty-icon,.profile-security-icon,.profile-info-icon{
+  background:var(--primary-soft-2)!important;
+  color:var(--primary)!important;
+}
+.people-step,.employee-tenure-card{
+  background:#F0FDF4!important;
+  border-color:#BBF7D0!important;
+}
+.people-step small,.employee-tenure-card small,.salary-mini,.employee-tenure-card strong{
+  color:#166534!important;
+}
+
+.form-grid input:focus,.form-grid select:focus,.form-grid textarea:focus,
+.table-toolbar input:focus,.people-toolbar input:focus,.search-field:focus-within,
+.edit-role-step-fields input:focus{
+  border-color:#22C55E!important;
+  box-shadow:0 0 0 3px rgba(34,197,94,.12)!important;
+}
+
+.filter-chip.active,.roles-team-tabs button.active{
+  background:#F0FDF4!important;
+  border-color:#BBF7D0!important;
+  color:#166534!important;
+}
+.roles-team-tabs button.active span{
+  background:#DCFCE7!important;
+  color:#166534!important;
+}
+.role-team-icon,.edit-role-step-number,.qualification-link-index{
+  background:#DCFCE7!important;
+  color:#166534!important;
+}
+
+.profile-avatar-large{
+  background:linear-gradient(145deg,#166534,#14532D)!important;
+  box-shadow:0 12px 28px rgba(22,101,52,.20)!important;
+}
+.profile-role-badge{
+  background:#F0FDF4!important;
+  border-color:#BBF7D0!important;
+  color:#166534!important;
+}
+.profile-hero-accent{
+  background:linear-gradient(90deg,#14532D 0%,#166534 50%,#22C55E 100%)!important;
+}
+.profile-security-status{
+  background:#DCFCE7!important;
+  color:#166534!important;
+}
+
+.login-brand{
+  background:
+    radial-gradient(circle at 82% 16%,rgba(34,197,94,.18) 0,transparent 32%),
+    linear-gradient(145deg,#102A1D,#0D2419 62%,#07170F)!important;
+}
+.login-logo{
+  margin-bottom:88px;
+}
+.login-logo .trilha-brand-icon{
+  width:54px;
+  height:54px;
+  flex-basis:54px;
+  border-radius:14px;
+}
+.login-logo .trilha-brand-copy strong{font-size:24px}
+.login-logo .trilha-brand-copy span{
+  color:#A7B9AD;
+  font-size:10px;
+}
+.eyebrow.light{color:#86EFAC!important}
+.login-feature b{color:#4ADE80!important}
+.login-card input:focus{
+  border-color:#22C55E!important;
+  box-shadow:0 0 0 3px rgba(34,197,94,.12)!important;
+}
+
+.trilha-loading-dot{
+  width:12px;
+  height:12px;
+  border-radius:50%;
+  background:#22C55E;
+  box-shadow:0 0 0 5px #DCFCE7;
+}
+
+/* Proprietary progression line */
+.step-track{
+  position:relative;
+}
+.step-dot{
+  background:#F0FDF4!important;
+  border-color:#86EFAC!important;
+  color:#166534!important;
+}
+.step-line{background:#BBF7D0!important}
+.progress-circle{
+  background:conic-gradient(#22C55E calc(var(--progress)*1%),#E2E8F0 0)!important;
+}
+
+@media(min-width:651px){
+  .sidebar:not(:hover):not(:focus-within) .trilha-brand-copy{
+    opacity:0;
+    visibility:hidden;
+    width:0;
+    overflow:hidden;
+  }
+  .sidebar:hover .trilha-brand-copy,
+  .sidebar:focus-within .trilha-brand-copy{
+    opacity:1;
+    visibility:visible;
+    width:auto;
+  }
+  .sidebar:not(:hover):not(:focus-within) .brand{
+    padding-left:6px!important;
+    padding-right:6px!important;
+  }
+  .sidebar:not(:hover):not(:focus-within) .trilha-brand-icon{
+    width:40px;
+    height:40px;
+    flex-basis:40px;
+  }
+  .sidebar:not(:hover):not(:focus-within) .nav-item.active .nav-icon{
+    background:rgba(34,197,94,.14)!important;
+    color:#4ADE80!important;
+  }
+}
