@@ -44,6 +44,18 @@ export default function LoginPage(){
   }
 
   return <main className="helpdesk-login-page">
+    <video
+      className="helpdesk-login-video"
+      autoPlay
+      muted
+      loop
+      playsInline
+      preload="metadata"
+      poster="/login-background.svg"
+      aria-hidden="true"
+    >
+      <source src="/login-background.mp4" type="video/mp4"/>
+    </video>
     <div className="helpdesk-login-overlay"/>
     <section className="helpdesk-login-shell">
       <div className="helpdesk-login-brand">
@@ -51,9 +63,6 @@ export default function LoginPage(){
         <div className="helpdesk-brand-copy">
           <h1>Evolução profissional com clareza</h1>
           <p>Acompanhe cada etapa da carreira, requisitos e próximos passos em uma experiência simples e objetiva.</p>
-        </div>
-        <div className="helpdesk-brand-trail" aria-hidden="true">
-          <span/><i/><span/><i/><span/>
         </div>
       </div>
 
