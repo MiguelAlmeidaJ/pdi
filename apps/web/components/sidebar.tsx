@@ -11,6 +11,7 @@ import {
   FiChevronDown,
   FiGrid,
   FiHome,
+  FiSettings,
   FiKey,
   FiLogOut,
   FiTrendingUp,
@@ -37,6 +38,7 @@ const managementItems:NavItem[]=[
   {label:'Cargos e steps',href:'/cargos',icon:FiBriefcase},
   {label:'Qualificações',href:'/qualificacoes',icon:FiAward},
   {label:'Promoções',href:'/promocoes',icon:FiTrendingUp},
+  {label:'Configurações',href:'/configuracoes/identidade-visual',icon:FiSettings},
 ];
 
 const userItems:NavItem[]=[
@@ -47,7 +49,7 @@ export function Sidebar(){
   const path=usePathname();
   const router=useRouter();
   const user=useSessionUser();
-  const items=user?.systemRole==='USER'?userItems:user?.systemRole==='MANAGER'?managementItems.filter(item=>item.href!=='/times'):managementItems;
+  const items=user?.systemRole==='USER'?userItems:user?.systemRole==='MANAGER'?managementItems.filter(item=>item.href!=='/times'&&!item.href.startsWith('/configuracoes')):managementItems;
   const initials=(user?.name||'Usuário').split(' ').slice(0,2).map(p=>p[0]).join('').toUpperCase();
   const [pendingReviews,setPendingReviews]=useState(0);
   const [profileOpen,setProfileOpen]=useState(false);
@@ -78,7 +80,8 @@ export function Sidebar(){
 
   return <aside className="sidebar">
     <div className="brand">
-      <TrilhaBrand theme="dark"/>
+      <TrilhaBrand compact theme="dark" className="sidebar-brand-compact"/>
+      <TrilhaBrand theme="dark" className="sidebar-brand-full"/>
     </div>
 
     <div className="sidebar-section-title">{user?.systemRole==='USER'?'DESENVOLVIMENTO':'GESTÃO'}</div>
