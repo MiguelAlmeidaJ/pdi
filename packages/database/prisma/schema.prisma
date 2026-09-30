@@ -262,3 +262,15 @@ model QualificationLink {
   qualification Qualification @relation(fields: [qualificationId], references: [id], onDelete: Cascade)
   @@index([qualificationId, order])
 }
+
+
+model VisualIdentity {
+  id String @id @default("default")
+  appName String @default("Trilha")
+  tagline String @default("Evolução profissional com clareza.")
+  logoLight String?
+  logoDark String?
+  iconLight String?
+  iconDark String?
+  updatedAt DateTime @updatedAt
+}
