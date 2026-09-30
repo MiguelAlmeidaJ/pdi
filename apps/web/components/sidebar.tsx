@@ -20,6 +20,7 @@ import {
 import type { IconType } from 'react-icons';
 import { useSessionUser } from '../lib/use-session';
 import { api } from '../lib/api';
+import { TrilhaBrand } from './trilha-brand';
 
 type NavItem={
   label:string;
@@ -77,8 +78,7 @@ export function Sidebar(){
 
   return <aside className="sidebar">
     <div className="brand">
-      <div className="brand-mark">P</div>
-      <div className="brand-copy"><strong>PDI</strong><span>People Development</span></div>
+      <TrilhaBrand/>
     </div>
 
     <div className="sidebar-section-title">{user?.systemRole==='USER'?'DESENVOLVIMENTO':'GESTÃO'}</div>
