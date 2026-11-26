@@ -174,7 +174,7 @@ export class UsersService {
     dto: ChangeCareerStepDto,
     actor: { sub: string; systemRole: SystemRole },
   ) {
-    await this.assertCanAccessUser(actor, userId);
+    await this.assertCanModifyUser(actor, userId);
 
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -186,14 +186,21 @@ export class UsersService {
     const target = await this.prisma.roleStep.findUnique({
       where: { id: dto.targetRoleStepId },
     });
-    if (!target) throw new NotFoundException('Step de destino não encontrado');
+    if (!target || !target.active) throw new NotFoundException('Step de destino não encontrado ou inativo');
     if (target.roleId !== user.roleId) throw new BadRequestException('O step de destino deve pertencer ao cargo atual do colaborador');
     if (target.id === user.currentRoleStepId) throw new BadRequestException('O colaborador já está neste step');
 
     const effectiveAt = dto.effectiveAt ? new Date(dto.effectiveAt) : new Date();
     const reason = dto.reason.trim();
+    if (!reason) throw new BadRequestException('Informe a justificativa da movimentação');
+    if (!Number.isFinite(effectiveAt.getTime()) || effectiveAt > new Date() || effectiveAt < user.hiredAt || (user.currentRoleStepStartedAt && effectiveAt < user.currentRoleStepStartedAt)) {
+      throw new BadRequestException('Data de movimentação incompatível com o histórico');
+    }
 
     const result = await this.prisma.$transaction(async (tx) => {
+      // Compare-and-set prevents two concurrent movements from using the same prior step.
+      const claimed = await tx.user.updateMany({ where: { id: userId, currentRoleStepId: user.currentRoleStepId, currentRoleStepStartedAt: user.currentRoleStepStartedAt }, data: { currentRoleStepId: target.id, currentRoleStepStartedAt: effectiveAt } });
+      if (claimed.count !== 1) throw new ConflictException('A carreira foi alterada simultaneamente; recarregue os dados');
       await tx.careerHistory.updateMany({
         where: { userId, endedAt: null },
         data: { endedAt: effectiveAt },
@@ -296,6 +303,16 @@ export class UsersService {
     if (!target) throw new NotFoundException('Usuário não encontrado');
     if (!actorTeamId || target.teamId !== actorTeamId) {
       throw new ForbiddenException('Gerentes só podem acessar colaboradores do próprio time');
+    }
+  }
+
+  async assertCanModifyUser(actor: { sub: string; systemRole: SystemRole }, targetUserId: string) {
+    await this.assertCanAccessUser(actor, targetUserId);
+    if (actor.sub === targetUserId) throw new ForbiddenException('Não é permitido alterar a própria carreira ou qualificação');
+    const target = await this.prisma.user.findUnique({ where: { id: targetUserId }, select: { active: true, systemRole: true } });
+    if (!target?.active) throw new ForbiddenException('Colaborador indisponível');
+    if (actor.systemRole === SystemRole.MANAGER && target.systemRole !== SystemRole.USER) {
+      throw new ForbiddenException('Gerentes só podem alterar colaboradores');
     }
   }
 

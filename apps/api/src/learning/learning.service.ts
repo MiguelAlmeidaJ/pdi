@@ -778,10 +778,10 @@ export class LearningService {
 
     const session = await this.prisma.videoWatchSession.findUnique({
       where: { token },
-      include: { lesson: true },
+      include: { lesson: true, user: { select: { active: true, systemRole: true } } },
     });
     if (
-      !session ||
+      !session || !session.user.active || session.user.systemRole !== SystemRole.USER || !session.lesson.active ||
       session.lessonId !== lessonId ||
       session.endedAt ||
       session.expiresAt <= new Date()
@@ -789,6 +789,7 @@ export class LearningService {
       throw new ForbiddenException('Link de mídia inválido ou expirado');
     }
 
+    await this.assertUserCourseAccess((await this.prisma.courseModule.findUniqueOrThrow({ where: { id: session.lesson.moduleId }, select: { courseId: true } })).courseId, session.userId);
     const assetKey = session.lesson.videoAssetKey;
     if (!assetKey) throw new NotFoundException('Vídeo não encontrado');
 
@@ -929,6 +930,8 @@ export class LearningService {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: {
+        active: true,
+        teamId: true,
         roleId: true,
         currentRoleStep: { select: { order: true } },
         qualifications: {
@@ -937,7 +940,7 @@ export class LearningService {
         },
       },
     });
-    if (!user?.roleId || !user.currentRoleStep) {
+    if (!user?.active || !user.roleId || !user.currentRoleStep || !course.qualification?.active || (course.qualification.teamId && course.qualification.teamId !== user.teamId)) {
       throw new ForbiddenException('Seu cargo atual ainda não permite acessar este curso');
     }
 

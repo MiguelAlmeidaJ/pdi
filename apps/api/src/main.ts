@@ -7,6 +7,13 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, { bodyParser: false });
 
+  app.getHttpAdapter().getInstance().disable('x-powered-by');
+  app.use((_req: any, res: any, next: () => void) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Referrer-Policy', 'no-referrer');
+    next();
+  });
   app.useBodyParser('json', { limit: '6mb' });
   app.setGlobalPrefix('api');
   app.enableCors({
@@ -23,7 +30,10 @@ async function bootstrap() {
     .setVersion('0.1.0')
     .build();
 
-  SwaggerModule.setup('docs', app, SwaggerModule.createDocument(app, config));
+  if (process.env.NODE_ENV !== 'production' || process.env.ENABLE_SWAGGER === 'true') {
+    SwaggerModule.setup('docs', app, SwaggerModule.createDocument(app, config));
+  }
+
 
   await app.listen(process.env.PORT ?? 3001);
 }

@@ -14,10 +14,13 @@ import { RolesGuard } from './roles.guard';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
         const secret = config.get<string>('JWT_SECRET');
-        if (!secret) throw new Error('JWT_SECRET is not defined');
+        if (!secret || secret.length < 32 || /^(change-me|replace-with)/i.test(secret)) {
+          throw new Error('JWT_SECRET must be a unique random secret with at least 32 characters');
+        }
         return {
           secret,
-          signOptions: { expiresIn: '8h' },
+          signOptions: { expiresIn: '1h', algorithm: 'HS256' },
+          verifyOptions: { algorithms: ['HS256'] },
         };
       },
     }),
