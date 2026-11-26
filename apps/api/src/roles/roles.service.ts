@@ -59,11 +59,7 @@ export class RolesService {
 
     const requirementIds = dto.steps.flatMap((step) => step.requirements?.map((item) => item.qualificationId) ?? []);
     if (new Set(requirementIds).size !== requirementIds.length) {
-      const duplicatedWithinStep = dto.steps.some((step) => {
-        const ids = step.requirements?.map((item) => item.qualificationId) ?? [];
-        return new Set(ids).size !== ids.length;
-      });
-      if (duplicatedWithinStep) throw new BadRequestException('Uma qualificação não pode se repetir dentro do mesmo step');
+      throw new BadRequestException('Uma qualificação ou curso só pode ser vinculado a um step do mesmo cargo');
     }
 
     if (requirementIds.length) {
@@ -231,17 +227,22 @@ export class RolesService {
     });
     if (qualifications.length !== ids.length) throw new BadRequestException('Uma ou mais qualificações não existem, estão inativas ou pertencem a outro time');
 
-    await this.prisma.$transaction([
-      this.prisma.roleStepQualification.deleteMany({ where: { roleStepId: stepId } }),
-      this.prisma.roleStepQualification.createMany({
+    await this.prisma.$transaction(async (tx) => {
+      const duplicate = await tx.roleStepQualification.findFirst({
+        where: { qualificationId: { in: ids }, roleStep: { roleId: step.roleId, id: { not: stepId } } },
+      });
+      if (duplicate) throw new BadRequestException('Uma ou mais qualificações já pertencem a outro step deste cargo');
+      await tx.roleStepQualification.deleteMany({ where: { roleStepId: stepId } });
+      await tx.roleStepQualification.createMany({
         data: dto.requirements.map((item) => ({
           roleStepId: stepId,
           qualificationId: item.qualificationId,
           required: item.required ?? true,
           notes: item.notes?.trim(),
         })),
-      }),
-    ]);
+      });
+    }, { isolationLevel: 'Serializable' });
+
 
     return this.prisma.roleStep.findUnique({
       where: { id: stepId },
