@@ -23,6 +23,8 @@ type Qualification={
   type:string;
   description?:string|null;
   active:boolean;
+  courseModality?:'ONLINE'|'IN_PERSON'|null;
+  courseDelivery?:'PLATFORM'|'EXTERNAL'|null;
   team?:{id:string;name:string}|null;
   links?:QualificationLink[];
 };
@@ -81,14 +83,19 @@ export default function Cursos(){
     [qualifications]
   );
 
+  const platformQualifications=useMemo(
+    ()=>courseQualifications.filter(item=>(item.courseModality||'ONLINE')==='ONLINE'&&(item.courseDelivery||'PLATFORM')==='PLATFORM'),
+    [courseQualifications]
+  );
+
   const linkedQualificationIds=useMemo(
     ()=>new Set(courses.map(course=>course.qualification?.id).filter(Boolean) as string[]),
     [courses]
   );
 
   const availableQualifications=useMemo(
-    ()=>courseQualifications.filter(item=>!linkedQualificationIds.has(item.id)),
-    [courseQualifications,linkedQualificationIds]
+    ()=>platformQualifications.filter(item=>!linkedQualificationIds.has(item.id)),
+    [platformQualifications,linkedQualificationIds]
   );
 
   const filteredCourses=useMemo(()=>{
@@ -176,7 +183,7 @@ export default function Cursos(){
 
   return <AppLayout
     title="Cursos"
-    description="Os cursos cadastrados nas qualificações aparecem aqui e podem ser transformados em treinamentos internos."
+    description="Configure módulos, aulas e vídeos dos cursos Online · Na Trilha."
     action={<button className="primary-action action-with-icon" onClick={()=>openCreate()}><FiPlus/> Configurar curso</button>}
   >
     {error&&<div className="form-error">{error}</div>}
@@ -191,7 +198,7 @@ export default function Cursos(){
         <div>
           <p className="eyebrow">CURSOS DAS QUALIFICAÇÕES</p>
           <h2>Prontos para configurar</h2>
-          <p>Esses cursos já existem como qualificações e ainda não possuem módulos e aulas internas.</p>
+          <p>Somente cursos definidos como Online · Na Trilha aparecem aqui para receber módulos, aulas e vídeos.</p>
         </div>
         <span>{filteredAvailable.length} disponível(is)</span>
       </div>

@@ -59,6 +59,16 @@ enum VideoAssetStatus {
   ERROR
 }
 
+enum CourseModality {
+  ONLINE
+  IN_PERSON
+}
+
+enum CourseDelivery {
+  PLATFORM
+  EXTERNAL
+}
+
 model Team {
   id String @id @default(cuid())
   name String
@@ -76,7 +86,7 @@ model User {
   email String @unique
   passwordHash String
   systemRole SystemRole @default(USER)
-  hiredAt DateTime
+  hiredAt DateTime?
   professionalSince DateTime?
   active Boolean @default(true)
   teamId String
@@ -150,6 +160,10 @@ model Qualification {
   teamId String?
   type QualificationType
   description String?
+  requiredMonths Int?
+  courseModality CourseModality?
+  courseDelivery CourseDelivery?
+  courseInstructions String?
   referenceUrl String?
   active Boolean @default(true)
   createdAt DateTime @default(now())

@@ -18,9 +18,24 @@ const fallback:VisualIdentity={
   id:'default',
   appName:'Trilha',
   tagline:'Evolução profissional com clareza.',
+  logoLight:'/branding/logo-trilha-verde.png',
+  logoDark:'/branding/logo-trilha-branco.png',
+  iconLight:'/favicon.ico',
+  iconDark:'/favicon.ico',
 };
 
 let cached:VisualIdentity|undefined;
+
+function withDefaultAssets(identity:VisualIdentity):VisualIdentity{
+  return {
+    ...fallback,
+    ...identity,
+    logoLight:identity.logoLight||fallback.logoLight,
+    logoDark:identity.logoDark||fallback.logoDark,
+    iconLight:identity.iconLight||fallback.iconLight,
+    iconDark:identity.iconDark||fallback.iconDark,
+  };
+}
 
 function applyBrowserBrand(identity:VisualIdentity){
   const favicon=identity.iconLight||identity.iconDark||null;
@@ -64,9 +79,10 @@ export function useVisualIdentity(){
     fetch(API_URL+'/branding/visual-identity')
       .then(response=>response.ok?response.json():Promise.reject())
       .then((data:VisualIdentity)=>{
-        cached=data;
-        applyBrowserBrand(data);
-        if(active)setIdentity(data);
+        const identity=withDefaultAssets(data);
+        cached=identity;
+        applyBrowserBrand(identity);
+        if(active)setIdentity(identity);
       })
       .catch(()=>{});
 
@@ -77,7 +93,8 @@ export function useVisualIdentity(){
 }
 
 export function refreshVisualIdentity(identity:VisualIdentity){
-  cached=identity;
-  applyBrowserBrand(identity);
-  window.dispatchEvent(new CustomEvent('trilha-visual-identity-updated',{detail:identity}));
+  const current=withDefaultAssets(identity);
+  cached=current;
+  applyBrowserBrand(current);
+  window.dispatchEvent(new CustomEvent('trilha-visual-identity-updated',{detail:current}));
 }

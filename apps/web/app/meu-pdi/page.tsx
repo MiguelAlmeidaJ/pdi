@@ -55,6 +55,10 @@ type Requirement={
   evaluator?:{id:string;name:string}|null;
   links?:{id?:string;title:string;url:string;order?:number}[];
   referenceUrl?:string|null;
+  courseModality?:'ONLINE'|'IN_PERSON'|null;
+  courseDelivery?:'PLATFORM'|'EXTERNAL'|null;
+  courseExternalUrl?:string|null;
+  courseInstructions?:string|null;
   internalCourse?:{id:string;title:string;active:boolean}|null;
 };
 
@@ -259,6 +263,8 @@ export default function MeuPdi(){
         {visibleCourses.map(course=>{
           const status=requirementStatus(course);
           const links=(course.links||[]);
+          const externalCourse=course.courseModality==='ONLINE'&&course.courseDelivery==='EXTERNAL';
+          const inPersonCourse=course.courseModality==='IN_PERSON';
           return <article className={'trail-learning-item '+status.tone} key={course.key}>
             <div className="trail-learning-icon">
               {course.met?<FiCheck/>:course.status==='AWAITING_REVIEW'?<FiClock/>:<FiBookOpen/>}
@@ -274,6 +280,11 @@ export default function MeuPdi(){
               </div>
 
               <div className="trail-learning-links">
+                {externalCourse&&course.courseExternalUrl&&<a href={course.courseExternalUrl} target="_blank" rel="noreferrer" className="trail-learning-internal-course">
+                  <span className="trail-learning-provider-icon"><FiExternalLink/></span>
+                  <div><strong>Acessar plataforma externa</strong><small>{providerLabel(course.courseExternalUrl)}</small></div>
+                  <FiArrowRight/>
+                </a>}
                 {course.internalCourse?.active&&<Link href={'/aprender/'+course.internalCourse.id} className="trail-learning-internal-course">
                   <span className="trail-learning-provider-icon"><FiPlayCircle/></span>
                   <div><strong>Abrir curso na Trilha</strong><small>Progresso acompanhado automaticamente</small></div>
@@ -289,7 +300,8 @@ export default function MeuPdi(){
                   <div><strong>Abrir material do curso</strong><small>{providerLabel(course.referenceUrl)}</small></div>
                   <FiExternalLink/>
                 </a>}
-                {!links.length&&!course.referenceUrl&&<div className="trail-learning-no-link"><FiBookOpen/><span>Nenhum material de referência foi cadastrado para este curso.</span></div>}
+                {inPersonCourse&&<div className="trail-learning-format-note"><FiCalendar/><div><strong>Curso presencial</strong><span>{course.courseInstructions||'Consulte seu gestor para receber local, agenda e orientações de participação.'}</span></div></div>}
+                {!links.length&&!course.referenceUrl&&!externalCourse&&!inPersonCourse&&!course.internalCourse?.active&&<div className="trail-learning-no-link"><FiBookOpen/><span>Este curso ainda não possui conteúdo disponível.</span></div>}
               </div>
 
               {course.status==='AWAITING_REVIEW'&&<div className="trail-learning-review-note">

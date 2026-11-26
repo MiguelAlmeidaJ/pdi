@@ -16,8 +16,8 @@ async function main() {
   const adminPassword = required('ADMIN_PASSWORD');
   const bootstrapTeamName = process.env.ADMIN_TEAM_NAME?.trim() || 'Administração';
 
-  if (adminPassword.length < 12) {
-    throw new Error('ADMIN_PASSWORD must have at least 12 characters');
+  if (adminPassword.length < 8) {
+    throw new Error('ADMIN_PASSWORD must have at least 8 characters');
   }
 
   const prisma = new PrismaClient({

@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import { AppLayout } from '../../../components/app-layout';
 import { api } from '../../../lib/api';
 
-type Profile={id:string;name:string;email:string;active:boolean;hiredAt:string;professionalSince?:string|null;currentRoleStepStartedAt?:string|null;systemRole:string;team?:{name:string}|null;role?:{id:string;name:string;description?:string|null;steps:{id:string;label:string;code:string;salary:string;order:number}[]}|null;currentRoleStep?:{id:string;label:string;code:string;salary:string;order:number}|null;manager?:{name:string;email:string}|null;careerHistory:{id:string;startedAt:string;endedAt?:string|null;reason?:string|null;salary:string;role:{id:string;name:string};roleStep:{id:string;code:string;label:string;order:number}}[]};
+type Profile={id:string;name:string;email:string;active:boolean;hiredAt?:string|null;professionalSince?:string|null;currentRoleStepStartedAt?:string|null;systemRole:string;team?:{name:string}|null;role?:{id:string;name:string;description?:string|null;steps:{id:string;label:string;code:string;salary:string;order:number}[]}|null;currentRoleStep?:{id:string;label:string;code:string;salary:string;order:number}|null;manager?:{name:string;email:string}|null;careerHistory:{id:string;startedAt:string;endedAt?:string|null;reason?:string|null;salary:string;role:{id:string;name:string};roleStep:{id:string;code:string;label:string;order:number}}[]};
 type Requirement={key:string;source?:'AUTO'|'QUALIFICATION';name:string;type:string;met:boolean;status?:string;requiredMonths?:number;currentMonths?:number;description?:string|null;notes?:string|null;evidenceUrl?:string|null;submissionNotes?:string|null;submittedAt?:string|null;completedAt?:string|null;evaluatedAt?:string|null;evaluator?:{id:string;name:string}|null};
 type Development={current:{role:{name:string};step:{label:string;code:string};salary:string;startedAt?:string|null;monthsInCurrentStep?:number};next:null|{label:string;code:string;salary:string};progress:{required:number;completed:number;percentage:number};requirements:Requirement[];eligibleForPromotion:boolean;careerComplete:boolean};
 
@@ -27,8 +27,13 @@ export default function Colaborador(){
   const [savingEvaluation,setSavingEvaluation]=useState(false);
   async function load(){
     try{
-      const [p,d]=await Promise.all([api<Profile>('/users/'+id),api<Development>('/users/'+id+'/development')]);
-      setProfile(p);setDev(d);setError('');
+      const p=await api<Profile>('/users/'+id);
+      setProfile(p);
+      if(p.systemRole==='MANAGER'){
+        setDev(null);setError('');return;
+      }
+      const d=await api<Development>('/users/'+id+'/development');
+      setDev(d);setError('');
     }catch(e){setError(e instanceof Error?e.message:'Erro ao carregar PDI')}
   }
   useEffect(()=>{load()},[id]);
@@ -71,9 +76,23 @@ export default function Colaborador(){
   }
 
   if(error)return <AppLayout title="PDI individual" description="Detalhes do desenvolvimento do colaborador."><div className="form-error">{error}</div></AppLayout>;
-  if(!profile||!dev)return <AppLayout title="PDI individual" description="Carregando dados do colaborador..."><div className="skeleton-card"/></AppLayout>;
+  if(!profile)return <AppLayout title="PDI individual" description="Carregando dados do colaborador..."><div className="skeleton-card"/></AppLayout>;
 
   const initials=profile.name.split(' ').slice(0,2).map(p=>p[0]).join('').toUpperCase();
+  if(profile.systemRole==='MANAGER')return <AppLayout title="Perfil do gerente" description="Dados de acesso e vínculo com o time.">
+    <Link href="/colaboradores" className="back-link">← Voltar para colaboradores</Link>
+    <section className="profile-hero">
+      <div className="avatar xl">{initials}</div>
+      <div className="profile-main"><div className="profile-name-line"><h2>{profile.name}</h2><span className="status-pill">{profile.active?'Ativo':'Inativo'}</span></div><p>Gerente · {profile.team?.name||'Sem time'}</p><span>{profile.email}</span></div>
+      <div className="profile-side"><small>PERFIL</small><strong>Gerente</strong></div>
+    </section>
+    <section className="manager-profile-grid">
+      <article className="panel info-card"><p className="eyebrow">INFORMAÇÕES</p><dl><div><dt>Time</dt><dd>{profile.team?.name||'Não definido'}</dd></div><div><dt>Admissão</dt><dd>{profile.hiredAt?new Date(profile.hiredAt).toLocaleDateString('pt-BR'):'Não informada'}</dd></div><div><dt>Experiência desde</dt><dd>{profile.professionalSince?new Date(profile.professionalSince).toLocaleDateString('pt-BR'):'Não informada'}</dd></div></dl></article>
+      <article className="panel manager-career-note"><p className="eyebrow">TRILHA DE CARREIRA</p><h2>Perfil sem evolução</h2><p>Gerentes administram o desenvolvimento do time e não possuem cargo, step, salário ou requisitos de promoção nesta trilha.</p></article>
+    </section>
+  </AppLayout>;
+  if(!profile.hiredAt)return <AppLayout title="PDI individual" description="Dados incompletos do colaborador."><div className="form-error">Informe a data de admissão para habilitar a evolução de carreira.</div></AppLayout>;
+  if(!dev)return <AppLayout title="PDI individual" description="Carregando dados do colaborador..."><div className="skeleton-card"/></AppLayout>;
   const missing=Math.max(0,dev.progress.required-dev.progress.completed);
 
   return <AppLayout title="PDI individual" description="Acompanhe evolução, requisitos e próximo passo da carreira.">

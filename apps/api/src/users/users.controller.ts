@@ -7,6 +7,7 @@ import { SetUserQualificationDto } from './dto/set-user-qualification.dto';
 import { ChangeCareerStepDto } from './dto/change-career-step.dto';
 import { SubmitQualificationDto } from './dto/submit-qualification.dto';
 import { ChangeOwnPasswordDto } from './dto/change-own-password.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
 import { DevelopmentService } from './development.service';
 import { UserQualificationsService } from './user-qualifications.service';
@@ -94,6 +95,22 @@ export class UsersController {
   @Get(':id')
   findOne(@Param('id') id: string, @Request() request: AuthenticatedRequest) {
     return this.users.findOne(id, request.user);
+  }
+
+  @Roles(SystemRole.ADMIN, SystemRole.MANAGER)
+  @Put(':id')
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateUserDto,
+    @Request() request: AuthenticatedRequest,
+  ) {
+    return this.users.update(id, dto, request.user);
+  }
+
+  @Roles(SystemRole.ADMIN, SystemRole.MANAGER)
+  @Put(':id/deactivate')
+  deactivate(@Param('id') id: string, @Request() request: AuthenticatedRequest) {
+    return this.users.deactivate(id, request.user);
   }
 
   @Roles(SystemRole.ADMIN, SystemRole.MANAGER)

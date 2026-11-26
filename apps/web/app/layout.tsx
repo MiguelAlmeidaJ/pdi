@@ -5,6 +5,11 @@ import { AuthShell } from '../components/auth-shell';
 export const metadata: Metadata = {
   title: 'Trilha',
   description: 'Trilha — Evolução profissional com clareza.',
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

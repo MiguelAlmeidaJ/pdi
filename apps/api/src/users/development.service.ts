@@ -33,7 +33,7 @@ export class DevelopmentService {
     });
 
     if (!user) throw new NotFoundException('Usuário não encontrado');
-    if (!user.role || !user.currentRoleStep) {
+    if (!user.role || !user.currentRoleStep || !user.hiredAt) {
       throw new BadRequestException('Usuário ainda não possui cargo e step atual configurados');
     }
 
@@ -74,7 +74,7 @@ export class DevelopmentService {
     const now = new Date();
     const requirements: Array<Record<string, unknown>> = [];
 
-    if (nextStep.minTenureMonths != null) {
+    if (nextStep.minTenureMonths != null && nextStep.minTenureMonths > 0) {
       const currentMonths = completedMonths(user.hiredAt, now);
       requirements.push({
         key: 'tenure',
@@ -87,7 +87,7 @@ export class DevelopmentService {
       });
     }
 
-    if (nextStep.minMonthsInCurrentStep != null) {
+    if (nextStep.minMonthsInCurrentStep != null && nextStep.minMonthsInCurrentStep > 0) {
       const currentMonths = user.currentRoleStepStartedAt
         ? completedMonths(user.currentRoleStepStartedAt, now)
         : 0;
@@ -102,7 +102,7 @@ export class DevelopmentService {
       });
     }
 
-    if (nextStep.minExperienceMonths != null) {
+    if (nextStep.minExperienceMonths != null && nextStep.minExperienceMonths > 0) {
       const currentMonths = user.professionalSince ? completedMonths(user.professionalSince, now) : 0;
       requirements.push({
         key: 'experience',
@@ -120,6 +120,20 @@ export class DevelopmentService {
     );
 
     for (const requirement of nextStep.requirements) {
+      if (requirement.qualification.type === QualificationType.TENURE && requirement.qualification.requiredMonths) {
+        const currentMonths = completedMonths(user.hiredAt, now);
+        requirements.push({
+          key: requirement.qualificationId,
+          source: 'AUTO',
+          name: requirement.qualification.name,
+          type: QualificationType.TENURE,
+          description: requirement.qualification.description,
+          requiredMonths: requirement.qualification.requiredMonths,
+          currentMonths,
+          met: currentMonths >= requirement.qualification.requiredMonths,
+        });
+        continue;
+      }
       const userQualification = completed.get(requirement.qualificationId);
       requirements.push({
         key: requirement.qualificationId,
@@ -127,6 +141,12 @@ export class DevelopmentService {
         name: requirement.qualification.name,
         type: requirement.qualification.type,
         description: requirement.qualification.description,
+        courseModality: requirement.qualification.courseModality,
+        courseDelivery: requirement.qualification.courseDelivery,
+        courseExternalUrl: requirement.qualification.courseDelivery === 'EXTERNAL'
+          ? requirement.qualification.links[0]?.url ?? null
+          : null,
+        courseInstructions: requirement.qualification.courseInstructions,
         referenceUrl: requirement.qualification.referenceUrl,
         links: requirement.qualification.links,
         internalCourse: requirement.qualification.course,

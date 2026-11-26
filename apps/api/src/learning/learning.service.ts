@@ -5,6 +5,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import {
+  CourseDelivery,
+  CourseModality,
   NotificationType,
   QualificationStatus,
   QualificationType,
@@ -979,11 +981,24 @@ export class LearningService {
   private async assertManageQualification(qualificationId: string, actor: Actor) {
     const qualification = await this.prisma.qualification.findUnique({
       where: { id: qualificationId },
-      select: { id: true, type: true, teamId: true, active: true },
+      select: {
+        id: true,
+        type: true,
+        teamId: true,
+        active: true,
+        courseModality: true,
+        courseDelivery: true,
+      },
     });
     if (!qualification?.active) throw new NotFoundException('Qualificação não encontrada');
     if (qualification.type !== QualificationType.COURSE) {
       throw new BadRequestException('O curso precisa estar vinculado a uma qualificação do tipo Curso');
+    }
+    if (
+      qualification.courseModality !== CourseModality.ONLINE ||
+      qualification.courseDelivery !== CourseDelivery.PLATFORM
+    ) {
+      throw new BadRequestException('Somente cursos Online · Na Trilha podem receber módulos, aulas e vídeos');
     }
     await this.assertCanManageCourse(actor, qualification.teamId);
     return qualification;

@@ -5,3 +5,10 @@ packages:
 ignoredBuiltDependencies:
   - '@prisma/engines'
   - prisma
+
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - '@scarf/scarf'
+  - argon2
+  - esbuild
+  - unrs-resolver

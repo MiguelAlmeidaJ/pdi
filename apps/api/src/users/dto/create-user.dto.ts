@@ -6,7 +6,7 @@ export class CreateUserDto {
   @IsEmail() email!: string;
   @IsString() @MinLength(8) password!: string;
   @IsEnum(SystemRole) @IsOptional() systemRole?: SystemRole;
-  @IsDateString() hiredAt!: string;
+  @IsDateString() @IsOptional() hiredAt?: string;
   @IsDateString() @IsOptional() professionalSince?: string;
   @IsString() teamId!: string;
   @IsString() @IsOptional() roleId?: string;

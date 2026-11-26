@@ -1,6 +1,6 @@
 import { Type } from 'class-transformer';
-import { QualificationType } from '@prisma/client';
-import { IsArray, IsEnum, IsOptional, IsString, IsUrl, MinLength, ValidateNested } from 'class-validator';
+import { CourseDelivery, CourseModality, QualificationType } from '@prisma/client';
+import { IsArray, IsEnum, IsInt, IsOptional, IsString, IsUrl, Min, MinLength, ValidateNested } from 'class-validator';
 
 export class QualificationLinkDto {
   @IsString()
@@ -12,10 +12,14 @@ export class QualificationLinkDto {
 }
 
 export class CreateQualificationDto {
-  @IsString() teamId!: string;
+  @IsString() @IsOptional() teamId?: string;
   @IsString() @MinLength(2) name!: string;
   @IsEnum(QualificationType) type!: QualificationType;
   @IsString() @IsOptional() description?: string;
+  @IsInt() @Min(1) @IsOptional() requiredMonths?: number;
+  @IsEnum(CourseModality) @IsOptional() courseModality?: CourseModality;
+  @IsEnum(CourseDelivery) @IsOptional() courseDelivery?: CourseDelivery;
+  @IsString() @IsOptional() courseInstructions?: string;
 
   @IsArray()
   @ValidateNested({ each: true })

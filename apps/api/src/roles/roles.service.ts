@@ -68,7 +68,14 @@ export class RolesService {
 
     if (requirementIds.length) {
       const validQualifications = await this.prisma.qualification.findMany({
-        where: { id: { in: [...new Set(requirementIds)] }, teamId: effectiveTeamId, active: true },
+        where: {
+          id: { in: [...new Set(requirementIds)] },
+          active: true,
+          OR: [
+            { teamId: effectiveTeamId },
+            { teamId: null, type: 'TENURE' },
+          ],
+        },
         select: { id: true },
       });
       if (validQualifications.length !== new Set(requirementIds).size) {
@@ -215,7 +222,10 @@ export class RolesService {
       where: {
         id: { in: ids },
         active: true,
-        teamId: step.role.teamId,
+        OR: [
+          { teamId: step.role.teamId },
+          { teamId: null, type: 'TENURE' },
+        ],
       },
       select: { id: true },
     });

@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { NotificationType, QualificationStatus, SystemRole } from '@prisma/client';
+import { NotificationType, QualificationStatus, QualificationType, SystemRole } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service';
 import { SetUserQualificationDto } from './dto/set-user-qualification.dto';
 import { SubmitQualificationDto } from './dto/submit-qualification.dto';
@@ -16,6 +16,9 @@ export class UserQualificationsService {
     ]);
     if (!user) throw new NotFoundException('Usuário não encontrado');
     if (!qualification || !qualification.active) throw new NotFoundException('Qualificação não encontrada ou inativa');
+    if (qualification.type === QualificationType.TENURE) {
+      throw new BadRequestException('O tempo de casa é calculado automaticamente pela data de admissão');
+    }
     if (qualification.teamId && qualification.teamId !== user.teamId) {
       throw new BadRequestException('A qualificação deve pertencer ao mesmo time do colaborador');
     }
@@ -95,6 +98,9 @@ export class UserQualificationsService {
 
     if (!user) throw new NotFoundException('Usuário não encontrado');
     if (!qualification || !qualification.active) throw new NotFoundException('Qualificação não encontrada ou inativa');
+    if (qualification.type === QualificationType.TENURE) {
+      throw new BadRequestException('O tempo de casa é calculado automaticamente pela data de admissão');
+    }
     if (qualification.teamId && qualification.teamId !== user.teamId) {
       throw new BadRequestException('A qualificação deve pertencer ao seu time');
     }
