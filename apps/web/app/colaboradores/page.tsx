@@ -150,12 +150,12 @@ export default function Colaboradores() {
           password: editing ? undefined : form.password,
           systemRole: editing ? undefined : form.systemRole,
           hiredAt: form.hiredAt || undefined,
-          professionalSince: form.professionalSince || undefined,
+          professionalSince: form.professionalSince || (editing ? null : undefined),
           teamId: form.teamId,
-          roleId: hasCareerProgression ? form.roleId || undefined : undefined,
-          currentRoleStepId: hasCareerProgression ? form.currentRoleStepId || undefined : undefined,
+          roleId: hasCareerProgression ? form.roleId || (editing ? null : undefined) : undefined,
+          currentRoleStepId: hasCareerProgression ? form.currentRoleStepId || (editing ? null : undefined) : undefined,
           currentRoleStepStartedAt: hasCareerProgression ? form.currentRoleStepStartedAt || undefined : undefined,
-          managerId: hasCareerProgression ? form.managerId || undefined : undefined,
+          managerId: hasCareerProgression ? form.managerId || (editing ? null : undefined) : undefined,
         }),
       });
       setOpen(false);
@@ -231,7 +231,7 @@ export default function Colaboradores() {
           const initials = user.name.split(' ').slice(0, 2).map((part) => part[0]).join('').toUpperCase();
           const isManager = user.systemRole === 'MANAGER';
           const targetStep = nextStep(user);
-          const canModify = user.active && user.id !== sessionUser?.id && (sessionUser?.systemRole === 'ADMIN' || user.systemRole === 'USER');
+          const canModify = user.active && Boolean(sessionUser?.id) && user.id !== sessionUser?.id && (sessionUser?.systemRole === 'ADMIN' || (sessionUser?.systemRole === 'MANAGER' && user.systemRole === 'USER' && Boolean(self?.team?.id) && user.team?.id === self?.team?.id));
           const promotionTitle = !canModify ? 'Ação indisponível' : !targetStep ? 'Sem próximo step disponível' : `Promover para ${targetStep.label}`;
           return <div className="people-list-row" key={user.id}>
             <Link href={`/colaboradores/${user.id}`} className="people-list-person"><div className="avatar list-avatar">{initials}</div><div><strong>{user.name}</strong><span>{user.email}</span></div></Link>
