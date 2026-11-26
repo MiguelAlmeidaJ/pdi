@@ -231,7 +231,7 @@ export class UsersService {
         where: { id: managerId },
         select: { teamId: true, active: true, systemRole: true },
       });
-      if (!manager?.active || manager.teamId !== teamId || ![SystemRole.MANAGER, SystemRole.ADMIN].includes(manager.systemRole)) {
+      if (!manager?.active || manager.teamId !== teamId || (manager.systemRole !== SystemRole.MANAGER && manager.systemRole !== SystemRole.ADMIN)) {
         throw new BadRequestException('Selecione um gestor ativo do mesmo time');
       }
     }
