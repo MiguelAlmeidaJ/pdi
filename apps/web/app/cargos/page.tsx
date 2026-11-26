@@ -61,7 +61,7 @@ type StepScalarKey=Exclude<keyof StepForm,'qualificationIds'>;
   function updateStep(index:number,key:StepScalarKey,value:string|number){setSteps(steps.map((s,i)=>i===index?{...s,[key]:value}:s))}
   function removeStep(index:number){if(index===0)return;setSteps(steps.filter((_,i)=>i!==index).map((s,i)=>({...s,order:i})))}
   function toggleCreateQualification(index:number,id:string){
-    setSteps(current=>current.map((step,i)=>i===index?{...step,qualificationIds:step.qualificationIds.includes(id)?step.qualificationIds.filter(x=>x!==id):[...step.qualificationIds,id]}:step));
+    setSteps(current=>current.some((step,i)=>i!==index&&step.qualificationIds.includes(id))?current:current.map((step,i)=>i===index?{...step,qualificationIds:step.qualificationIds.includes(id)?step.qualificationIds.filter(x=>x!==id):[...step.qualificationIds,id]}:step));
   }
   async function changeCreateTeam(teamId:string){
     setForm({...form,teamId});
@@ -164,7 +164,7 @@ type StepScalarKey=Exclude<keyof StepForm,'qualificationIds'>;
   }
 
   function toggleQualification(id:string){
-    setSelectedIds(current=>current.includes(id)?current.filter(x=>x!==id):[...current,id]);
+    setSelectedIds(current=>current.includes(id)?current.filter(x=>x!==id):occupiedIds.has(id)?current:[...current,id]);
   }
 
   async function saveRequirements(){
@@ -176,7 +176,8 @@ type StepScalarKey=Exclude<keyof StepForm,'qualificationIds'>;
     finally{setSavingRequirements(false)}
   }
 
-  const filteredQualifications=qualifications.filter(q=>[q.name,q.description,typeLabel[q.type]].some(v=>v?.toLowerCase().includes(qualificationQuery.toLowerCase())));
+  const occupiedIds=new Set(requirementsRole?.steps.filter(s=>s.id!==selectedStepId).flatMap(s=>s.requirements.map(r=>r.qualificationId))??[]);
+  const filteredQualifications=qualifications.filter(q=>(selectedIds.includes(q.id)||!occupiedIds.has(q.id))&&[q.name,q.description,typeLabel[q.type]].some(v=>v?.toLowerCase().includes(qualificationQuery.toLowerCase())));
   const visibleRoles=useMemo(()=>data.filter(role=>{
     const matchesTeam=!teamFilter||role.team.id===teamFilter;
     const q=roleQuery.trim().toLowerCase();
@@ -283,6 +284,7 @@ type StepScalarKey=Exclude<keyof StepForm,'qualificationIds'>;
       </div>
       <div className="steps-editor-head"><div><p className="eyebrow">STEPS</p><h3>Progressão do cargo</h3></div><button className="secondary-button" onClick={addStep} disabled={steps.length===5}>+ Adicionar step</button></div>
       {form.teamId&&<div className="create-qualification-search"><input value={createQualificationQuery} onChange={e=>setCreateQualificationQuery(e.target.value)} placeholder="Buscar qualificação para adicionar aos steps..."/><span>{createQualifications.length} disponíveis no time</span></div>}
+      <div aria-label="Fluxograma da carreira" style={{display:"flex",alignItems:"center",gap:8,overflowX:"auto",padding:"12px 0",color:"#166534"}}>{steps.map((step,index)=><div key={step.code} style={{display:"flex",alignItems:"center",gap:8,flexShrink:0}}>{index>0&&<span aria-hidden="true">→</span>}<div style={{border:"1px solid #bbf7d0",background:"#f0fdf4",borderRadius:10,padding:"10px 14px"}}><strong>{step.label||step.code}</strong><div style={{fontSize:11}}>{step.qualificationIds.length} requisito(s) novo(s)</div></div></div>)}</div><p className="field-help">Cada qualificação ou curso pertence a apenas um step deste cargo. Os requisitos anteriores permanecem na trilha.</p>
       <div className="steps-editor">{steps.map((s,i)=><div className="step-editor step-editor-rich" key={s.code}>
         <div className="step-editor-index">{i+1}</div>
         <div className="step-editor-content">
@@ -297,7 +299,7 @@ type StepScalarKey=Exclude<keyof StepForm,'qualificationIds'>;
             <div className="inline-requirements-head"><span>QUALIFICAÇÕES REQUERIDAS</span><b>{s.qualificationIds.length} selecionada(s)</b></div>
             {!form.teamId?<div className="inline-requirements-empty">Selecione um time para carregar as qualificações disponíveis.</div>:
               <div className="inline-qualification-grid">
-                {createQualifications.filter(q=>[q.name,q.description,typeLabel[q.type]].some(v=>v?.toLowerCase().includes(createQualificationQuery.toLowerCase()))).map(q=><label className={s.qualificationIds.includes(q.id)?'inline-qualification selected':'inline-qualification'} key={q.id}>
+                {createQualifications.filter(q=>!steps.some((other,j)=>j!==i&&other.qualificationIds.includes(q.id))&&[q.name,q.description,typeLabel[q.type]].some(v=>v?.toLowerCase().includes(createQualificationQuery.toLowerCase()))).map(q=><label className={s.qualificationIds.includes(q.id)?'inline-qualification selected':'inline-qualification'} key={q.id}>
                   <input type="checkbox" checked={s.qualificationIds.includes(q.id)} onChange={()=>toggleCreateQualification(i,q.id)}/>
                   <span>{s.qualificationIds.includes(q.id)?'✓':''}</span>
                   <div><strong>{q.name}</strong><small>{typeLabel[q.type]||q.type}</small></div>
@@ -326,7 +328,7 @@ type StepScalarKey=Exclude<keyof StepForm,'qualificationIds'>;
               <span className="check-ui">{selectedIds.includes(q.id)?'✓':''}</span>
               <div><strong>{q.name}</strong><small>{typeLabel[q.type]||q.type}{q.description?' · '+q.description:''}</small></div>
             </label>)}
-            {!filteredQualifications.length&&<div className="empty-state compact"><b>Nenhuma qualificação neste time</b><span>Cadastre primeiro as qualificações do time {requirementsRole.team.name}.</span></div>}
+            {!filteredQualifications.length&&<div className="empty-state compact"><b>Nenhuma qualificação disponível</b><span>Os requisitos podem já estar vinculados a outro step ou não corresponder à busca.</span></div>}
           </div>}
         </section>
       </div>
